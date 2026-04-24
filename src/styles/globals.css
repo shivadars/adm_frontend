@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', Inter, sans-serif;
+    background-color: #e8f0fe !important; /* brand-light */
+    color: #0a2540; /* brand-dark */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Lora', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Boutique section wrapper */
+  .section-wrap {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Section heading group */
+  .brand-overline {
+    @apply text-xs font-semibold uppercase;
+    color: #2563eb; /* brand-blue */
+    letter-spacing: 0.2em;
+  }
+  .brand-title {
+    font-family: 'Lora', Georgia, serif;
+    @apply text-3xl sm:text-4xl font-bold mt-1 leading-tight;
+    color: #0a2540; /* brand-dark */
+  }
+
+  /* Primary CTA button — Blue */
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 font-semibold py-3 px-7 rounded-full transition-all duration-300 active:scale-95;
+    background-color: #2563eb; /* brand-blue */
+    color: #ffffff;
+    box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.4);
+  }
+  .btn-brand:hover { background-color: #1d4ed8; /* Darker blue */ }
+
+  /* Outline button */
+  .btn-brand-outline {
+    @apply inline-flex items-center justify-center gap-2 border-2 font-semibold py-2.5 px-6 rounded-full transition-all duration-300 active:scale-95;
+    border-color: #2563eb; /* brand-blue */
+    color: #2563eb; /* brand-blue */
+  }
+  .btn-brand-outline:hover { background-color: #2563eb; color: #ffffff; }
+
+  /* Card base */
+  .boutique-card {
+    @apply bg-white overflow-hidden;
+    border-radius: 1.25rem;
+    border: 1px solid #bfdbfe; /* brand-border */
+    box-shadow: 0 4px 24px 0 rgba(10,37,64,0.06), 0 1px 4px 0 rgba(0,0,0,0.03);
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @apply animate-pulse rounded-xl;
+    background-color: #d2e3fc; /* brand-muted */
+  }
+}
+
+@layer utilities {
+/* Swiper overrides — Blue theme */
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: #ffffff !important;
+    background: rgba(37, 99, 235, 0.65) !important; /* brand-blue with opacity */
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    backdrop-filter: blur(4px);
+  }
+  .swiper-button-next::after,
+  .swiper-button-prev::after { font-size: 16px !important; font-weight: 900 !important; }
+
+  .swiper-pagination-bullet { background: #e8f0fe !important; opacity: 0.5 !important; } /* brand-light */
+  .swiper-pagination-bullet-active {
+    opacity: 1 !important;
+    background: #e8f0fe !important; /* brand-light */
+    width: 24px !important;
+    border-radius: 4px !important;
+  }
+
+  /* Paw print decorative text */
+  .paw-divider::before { content: '🐾'; margin-right: 0.5rem; opacity: 0.4; }
+  .paw-divider::after  { content: '🐾'; margin-left:  0.5rem; opacity: 0.4; }
+}

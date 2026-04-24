@@ -5,7 +5,7 @@ import {
   PawPrint, Plus, Trash2, Edit2, AtSign, Calendar,
   Heart, X, Image as ImageIcon, Ruler, Check, Edit3
 } from 'lucide-react';
-import { selectUserPets, deletePet, addPet, updatePet, selectPetFields, updatePetMeasurements } from '../features/pets/petSlice';
+import { selectUserPets, deletePet, addPet, updatePet, selectPetFields, updatePetMeasurements, fetchUserPets } from '../features/pets/petSlice';
 import { SizeGuide } from '../components/common/SizeGuide';
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -135,6 +135,12 @@ const PetProfile = () => {
   const fields   = useSelector(selectPetFields) || [];
 
   const [showAddModal, setShowAddModal] = useState(false);
+
+  React.useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchUserPets(user.id));
+    }
+  }, [dispatch, user?.id]);
   const [editingPet,   setEditingPet]   = useState(null);
   const [formData,     setFormData]     = useState({});
   const [preview,      setPreview]      = useState(null);

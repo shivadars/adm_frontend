@@ -24,7 +24,7 @@ export const ENDPOINTS = {
   ORDER:       (id) => `/orders/${id}`,
 
   // ── Pets ──────────────────────────────────────────────────────────────────
-  PETS:        (userId) => `/pets/${userId}`,
+  PETS:        (userId) => `/pets`,
   PET:         (id) => `/pets/${id}`,
 
   // ── Admin / CMS ───────────────────────────────────────────────────────────

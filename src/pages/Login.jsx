@@ -24,13 +24,9 @@ export const Login = () => {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      if (role === 'customer' && pets.length === 0) {
-        navigate('/onboarding/pet', { replace: true });
-      } else {
-        navigate(params.get('next') || '/', { replace: true });
-      }
+      navigate(params.get('next') || '/', { replace: true });
     }
-  }, [isAuthenticated, role, pets.length, user]);
+  }, [isAuthenticated, navigate, params]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

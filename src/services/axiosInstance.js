@@ -16,7 +16,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  withCredentials: true, // required for Laravel Sanctum cookie-based auth
+  withCredentials: false, // Set to false because we use Bearer token auth, not cookie auth
 });
 
 // ── Request interceptor: attach Bearer token ──────────────────────────────

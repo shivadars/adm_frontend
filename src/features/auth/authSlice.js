@@ -78,7 +78,13 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => { state.error = null; },
+    clearError:  (state) => { state.error = null; },
+    // Sync update — listener middleware persists via dataService.updateProfile
+    saveAddress: (state, { payload }) => {
+      if (state.user) {
+        state.user = { ...state.user, savedAddresses: payload };
+      }
+    },
   },
   extraReducers: (builder) => {
     // ── bootstrapAuth ─────────────────────────────────────────────────────
@@ -159,7 +165,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, saveAddress } = authSlice.actions;
 
 // ── Backwards-compatible action aliases ──────────────────────────────────
 // These allow existing components that import { login, logout, register }

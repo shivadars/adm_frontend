@@ -56,7 +56,17 @@ export const Shop = () => {
   }, [initialCat]);
 
   const filteredItems = useMemo(() => {
-    let result = selectedCategory === 'All' ? items : items.filter(i => i.category === selectedCategory);
+    let result = items;
+    if (selectedCategory !== 'All') {
+      result = items.filter(p => {
+        // New multi-category products have a `categories` array
+        if (Array.isArray(p.categories) && p.categories.length > 0) {
+          return p.categories.includes(selectedCategory);
+        }
+        // Legacy products have a single `category` string
+        return p.category === selectedCategory;
+      });
+    }
     if (sortOrder === 'price-low') return [...result].sort((a, b) => a.price - b.price);
     if (sortOrder === 'price-high') return [...result].sort((a, b) => b.price - a.price);
     return result;

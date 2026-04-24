@@ -75,7 +75,12 @@ const petSlice = createSlice({
     // Fields are admin-configured and can stay synchronous
     updateFields: (state, action) => {
       state.fields = action.payload;
-      // Note: field persistence is handled by listener middleware
+    },
+    // Synchronously update measurements on a pet (persisted via listener middleware)
+    updatePetMeasurements: (state, { payload: { userId, petId, measurements } }) => {
+      if (!state.userPets[userId]) return;
+      const pet = state.userPets[userId].find(p => p.id === petId);
+      if (pet) pet.measurements = { ...(pet.measurements || {}), ...measurements };
     },
   },
   extraReducers: (builder) => {
@@ -129,7 +134,7 @@ const petSlice = createSlice({
   },
 });
 
-export const { updateFields } = petSlice.actions;
+export const { updateFields, updatePetMeasurements } = petSlice.actions;
 
 // ── Backwards-compatible action aliases ───────────────────────────────────
 // Components that dispatch addPet / updatePet / deletePet will still work

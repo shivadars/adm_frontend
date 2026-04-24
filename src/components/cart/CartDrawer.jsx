@@ -94,7 +94,7 @@ export const CartDrawer = () => {
                     <span>₹{total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Link to="/cart" onClick={() => dispatch(toggleCart(false))} className="btn-brand w-full justify-center">
+                <Link to="/checkout" onClick={() => dispatch(toggleCart(false))} className="btn-brand w-full justify-center">
                   Proceed to Checkout <ArrowRight className="w-4 h-4" />
                 </Link>
                 <button onClick={() => dispatch(toggleCart(false))} className="w-full text-center text-sm text-brand-dark/50 hover:text-brand-dark/80 mt-3 transition-colors font-sans">

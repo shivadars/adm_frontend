@@ -69,12 +69,21 @@ const DEFAULT_CONTENT = {
   whyChooseTitle:      "Why Moms Choose A'DOREMOM",
 };
 
+// ── Default custom categories (admin can add/remove) ──────────────────────
+export const DEFAULT_CUSTOM_CATEGORIES = [
+  { id: 'cat-1', name: 'Male',            urlKey: 'male' },
+  { id: 'cat-2', name: 'Female',          urlKey: 'female' },
+  { id: 'cat-3', name: 'New Collections', urlKey: 'new-collections' },
+  { id: 'cat-4', name: 'Bandana',         urlKey: 'bandana' },
+  { id: 'cat-5', name: 'Customization',   urlKey: 'customization' },
+];
+
 // ── Bootstrap thunk: load ALL admin data from dataService at startup ──────
 export const fetchAdminData = createAsyncThunk(
   'admin/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const [products, hero, categories, content, reviews, why, enquiries] = await Promise.all([
+      const [products, hero, categories, content, reviews, why, enquiries, customCategories] = await Promise.all([
         dataService.getAdminData('products'),
         dataService.getAdminData('hero'),
         dataService.getAdminData('categories'),
@@ -82,6 +91,7 @@ export const fetchAdminData = createAsyncThunk(
         dataService.getAdminData('reviews'),
         dataService.getAdminData('why'),
         dataService.getAdminData('enquiries'),
+        dataService.getAdminData('customCategories'),
       ]);
 
       // Auto-migrate legacy hero links
@@ -96,13 +106,14 @@ export const fetchAdminData = createAsyncThunk(
       }
 
       return {
-        products:    products.data   || mockProducts,
-        heroSlides:  heroData        || DEFAULT_HERO,
-        categories:  categories.data || mockCategories,
-        content:     content.data    || DEFAULT_CONTENT,
-        reviews:     reviews.data    || DEFAULT_REVIEWS,
-        whyChooseUs: why.data        || DEFAULT_WHY,
-        enquiries:   enquiries.data  || [],
+        products:          products.data         || mockProducts,
+        heroSlides:        heroData              || DEFAULT_HERO,
+        categories:        categories.data       || mockCategories,
+        content:           content.data          || DEFAULT_CONTENT,
+        reviews:           reviews.data          || DEFAULT_REVIEWS,
+        whyChooseUs:       why.data              || DEFAULT_WHY,
+        enquiries:         enquiries.data        || [],
+        customCategories:  customCategories.data || DEFAULT_CUSTOM_CATEGORIES,
       };
     } catch (e) {
       return rejectWithValue(e.message);
@@ -124,14 +135,15 @@ export const syncAdminData = createAsyncThunk(
 const adminSlice = createSlice({
   name: 'admin',
   initialState: {
-    products:    mockProducts,
-    heroSlides:  DEFAULT_HERO,
-    categories:  mockCategories,
-    content:     DEFAULT_CONTENT,
-    reviews:     DEFAULT_REVIEWS,
-    whyChooseUs: DEFAULT_WHY,
-    enquiries:   [],
-    status:      'idle',
+    products:         mockProducts,
+    heroSlides:       DEFAULT_HERO,
+    categories:       mockCategories,
+    content:          DEFAULT_CONTENT,
+    reviews:          DEFAULT_REVIEWS,
+    whyChooseUs:      DEFAULT_WHY,
+    enquiries:        [],
+    customCategories: DEFAULT_CUSTOM_CATEGORIES,
+    status:           'idle',
   },
   reducers: {
     // ── Products CRUD ────────────────────────────────────────────────────
@@ -156,10 +168,25 @@ const adminSlice = createSlice({
       state.heroSlides = state.heroSlides.filter((s) => s.id !== id);
     },
 
-    // ── Categories ───────────────────────────────────────────────────────
+    // ── Categories (banner images — from AdminBanners) ──────────────────
     updateCategory: (state, { payload }) => {
       const idx = state.categories.findIndex((c) => c.id === payload.id);
       if (idx !== -1) state.categories[idx] = { ...state.categories[idx], ...payload };
+    },
+
+    // ── Custom Categories (admin-managed list for product dropdown) ───────
+    addCategory: (state, { payload }) => {
+      const name = payload.trim();
+      if (!name) return;
+      const alreadyExists = state.customCategories.some(
+        (c) => c.name.toLowerCase() === name.toLowerCase()
+      );
+      if (alreadyExists) return;
+      const urlKey = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      state.customCategories.push({ id: `cat-${Date.now()}`, name, urlKey });
+    },
+    deleteCategory: (state, { payload: id }) => {
+      state.customCategories = state.customCategories.filter((c) => c.id !== id);
     },
 
     // ── Why Choose Us ────────────────────────────────────────────────────
@@ -217,14 +244,15 @@ const adminSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchAdminData.fulfilled, (state, { payload }) => {
-        state.status      = 'succeeded';
-        state.products    = payload.products;
-        state.heroSlides  = payload.heroSlides;
-        state.categories  = payload.categories;
-        state.content     = payload.content;
-        state.reviews     = payload.reviews;
-        state.whyChooseUs = payload.whyChooseUs;
-        state.enquiries   = payload.enquiries;
+        state.status           = 'succeeded';
+        state.products         = payload.products;
+        state.heroSlides       = payload.heroSlides;
+        state.categories       = payload.categories;
+        state.content          = payload.content;
+        state.reviews          = payload.reviews;
+        state.whyChooseUs      = payload.whyChooseUs;
+        state.enquiries        = payload.enquiries;
+        state.customCategories = payload.customCategories;
       })
       .addCase(fetchAdminData.rejected, (state) => {
         state.status = 'failed';
@@ -237,6 +265,7 @@ export const {
   addProduct, editProduct, deleteProduct,
   updateHeroSlide, deleteHeroSlide,
   updateCategory,
+  addCategory, deleteCategory,
   updateWhyReason,
   addReview, editReview, deleteReview, toggleFeaturedReview,
   addEnquiry, updateEnquiryStatus, deleteEnquiry,

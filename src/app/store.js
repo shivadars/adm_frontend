@@ -17,7 +17,7 @@
 import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import cartReducer     from '../features/cart/cartSlice';
 import productReducer  from '../features/products/productSlice';
-import authReducer     from '../features/auth/authSlice';
+import authReducer, { clearError, saveAddress } from '../features/auth/authSlice';
 import ordersReducer   from '../features/orders/ordersSlice';
 import adminReducer    from '../features/admin/adminSlice';
 import editModeReducer from '../features/editMode/editModeSlice';
@@ -27,6 +27,7 @@ import {
   addProduct, editProduct, deleteProduct,
   updateHeroSlide, deleteHeroSlide,
   updateCategory,
+  addCategory, deleteCategory,
   updateWhyReason,
   addReview, editReview, deleteReview, toggleFeaturedReview,
   addEnquiry, updateEnquiryStatus, deleteEnquiry,
@@ -39,12 +40,23 @@ import {
   addToCart, removeFromCart, clearCart,
 } from '../features/cart/cartSlice';
 
-import { updateFields } from '../features/pets/petSlice';
+import { updateFields, updatePetMeasurements } from '../features/pets/petSlice';
 
 import dataService from '../services/dataService';
 
 // ── Listener Middleware ───────────────────────────────────────────────────
 const listenerMiddleware = createListenerMiddleware();
+
+// ── Auth: persist saved addresses ──────────────────────────────────
+listenerMiddleware.startListening({
+  actionCreator: saveAddress,
+  effect: async (action, listenerApi) => {
+    const { user } = listenerApi.getState().auth;
+    if (user?.id) {
+      await dataService.updateProfile(user.id, { savedAddresses: action.payload });
+    }
+  },
+});
 
 // ── Admin: persist products + reset public fetch status ─────────────────
 // After any product CRUD, save to storage AND reset state.products.status
@@ -113,12 +125,30 @@ listenerMiddleware.startListening({
   },
 });
 
+// ── Admin: persist custom categories (add/delete) ─────────────────────
+listenerMiddleware.startListening({
+  matcher: isAnyOf(addCategory, deleteCategory),
+  effect: async (action, listenerApi) => {
+    const state = listenerApi.getState();
+    await dataService.setAdminData('customCategories', state.admin.customCategories);
+  },
+});
+
 // ── Cart: persist after every cart mutation ───────────────────────────────
 listenerMiddleware.startListening({
   matcher: isAnyOf(addToCart, removeFromCart, clearCart),
   effect: async (action, listenerApi) => {
     const state = listenerApi.getState();
     await dataService.saveCart(state.cart.cartItems);
+  },
+});
+
+// ── Pets: persist measurements when updated ───────────────────────────
+listenerMiddleware.startListening({
+  actionCreator: updatePetMeasurements,
+  effect: async (action, listenerApi) => {
+    const state = listenerApi.getState();
+    await dataService.savePets(state.pets.userPets);
   },
 });
 

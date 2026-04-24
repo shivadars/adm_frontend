@@ -378,15 +378,27 @@ export const deletePet = async (userId, petId) => {
   }
 };
 
+// Save the entire userPets map (used by listener middleware after measurement updates)
+export const savePets = async (userPetsMap) => {
+  try {
+    write(KEYS.PETS, userPetsMap);
+    return ok(userPetsMap);
+  } catch (e) {
+    return err(e.message);
+  }
+};
+
 // ── Admin / CMS ──────────────────────────────────────────────────────────────
 const ADMIN_KEY_MAP = {
-  hero:       KEYS.HERO,
-  categories: KEYS.CATEGORIES,
-  content:    KEYS.CONTENT,
-  reviews:    KEYS.REVIEWS,
-  why:        KEYS.WHY,
-  enquiries:  KEYS.ENQUIRIES,
-  products:   KEYS.PRODUCTS,
+  hero:             KEYS.HERO,
+  categories:       KEYS.CATEGORIES,
+  content:          KEYS.CONTENT,
+  reviews:          KEYS.REVIEWS,
+  why:              KEYS.WHY,
+  enquiries:        KEYS.ENQUIRIES,
+  products:         KEYS.PRODUCTS,
+  customCategories: 'adoremom_custom_categories',
+  pet_fields:       'adoremom_pet_fields',
 };
 
 export const getAdminData = async (key) => {
@@ -441,6 +453,7 @@ const localService = {
   addPet,
   updatePet,
   deletePet,
+  savePets,
   // Admin CMS
   getAdminData,
   setAdminData,

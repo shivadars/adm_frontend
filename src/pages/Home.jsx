@@ -326,6 +326,22 @@ export const Home = () => {
     if (status === 'idle') dispatch(fetchProducts());
   }, [status, dispatch]);
 
+  // Helper: check if a product belongs to a category (supports both old and new format)
+  const inCategory = (p, catName) => {
+    if (Array.isArray(p.categories) && p.categories.length > 0) {
+      return p.categories.includes(catName);
+    }
+    return p.category === catName;
+  };
+
+  // Trending: first 4 products that are NOT in New Collections, fallback to first 4
+  const trending = items.filter(p => !inCategory(p, 'New Collections')).slice(0, 4);
+  const trendingProducts = trending.length > 0 ? trending : items.slice(0, 4);
+
+  // New Arrivals: products tagged as 'New Collections'
+  const newArrivals = items.filter(p => inCategory(p, 'New Collections')).slice(0, 4);
+  // Fallback: if admin hasn't tagged any as New Collections, show the next 4 products
+  const newArrivalProducts = newArrivals.length > 0 ? newArrivals : items.slice(4, 8);
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col z-0">
       <HeroCarousel />
@@ -353,7 +369,7 @@ export const Home = () => {
         <ProductGrid
           overline="What's popular right now"
           title="Trending Outfits"
-          products={items.slice(0, 4)}
+          products={trendingProducts}
           loading={loading}
           link="/shop"
         />
@@ -380,9 +396,9 @@ export const Home = () => {
         <ProductGrid
           overline="Just arrived"
           title="New Arrivals"
-          products={items.slice(4, 8)}
+          products={newArrivalProducts}
           loading={loading}
-          link="/shop"
+          link="/shop?category=new-collections"
         />
       </div>
 

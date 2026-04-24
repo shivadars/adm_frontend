@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { register, clearError } from '../features/auth/authSlice';
+import { registerUser, clearError } from '../features/auth/authSlice';
 import { motion } from 'framer-motion';
-import { UserPlus, PawPrint } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { PawBackground } from '../components/common/PawBackground';
 
 const Field = ({ label, name, type = 'text', placeholder, value, onChange }) => (
@@ -19,30 +19,28 @@ const Field = ({ label, name, type = 'text', placeholder, value, onChange }) => 
 export const Register = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error, isAuthenticated, user } = useSelector(s => s.auth);
+  const { error, isAuthenticated, user, status } = useSelector(s => s.auth);
   const pets = useSelector(state => state.pets.userPets[user?.id] || []);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
-  const [loading, setLoading] = useState(false);
+
+  const loading = status === 'loading';
 
   React.useEffect(() => { dispatch(clearError()); }, []);
-  React.useEffect(() => { 
+  React.useEffect(() => {
     if (isAuthenticated) {
       if (pets.length === 0 && user?.role === 'customer') {
         navigate('/onboarding/pet', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
-    } 
+    }
   }, [isAuthenticated, pets.length, user]);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 400));
-    dispatch(register(form));
-    setLoading(false);
+    dispatch(registerUser(form));
   };
 
   return (
@@ -62,10 +60,10 @@ export const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="Full Name" name="name" value={form.name} onChange={set('name')} placeholder="Your name" />
-            <Field label="Email" name="email" value={form.email} onChange={set('email')} type="email" placeholder="you@example.com" />
-            <Field label="Phone Number" name="phone" value={form.phone} onChange={set('phone')} placeholder="+91 XXXXX XXXXX" />
-            <Field label="Password" name="password" value={form.password} onChange={set('password')} type="password" placeholder="Min. 6 characters" />
+            <Field label="Full Name"     name="name"     value={form.name}     onChange={set('name')}     placeholder="Your name" />
+            <Field label="Email"         name="email"    value={form.email}    onChange={set('email')}    type="email" placeholder="you@example.com" />
+            <Field label="Phone Number"  name="phone"    value={form.phone}    onChange={set('phone')}    placeholder="+91 XXXXX XXXXX" />
+            <Field label="Password"      name="password" value={form.password} onChange={set('password')} type="password" placeholder="Min. 6 characters" />
 
             <button type="submit" disabled={loading} className="btn-brand w-full justify-center mt-2">
               {loading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <UserPlus className="w-4 h-4" />}

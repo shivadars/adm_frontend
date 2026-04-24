@@ -1,74 +1,144 @@
-import { createSlice } from '@reduxjs/toolkit';
+/**
+ * petSlice.js
+ *
+ * Manages pet profiles per user.
+ * All persistence goes through dataService — no direct localStorage access.
+ */
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import dataService from '../../services/dataService';
 
+// ── Default fields ────────────────────────────────────────────────────────
 const DEFAULT_FIELDS = [
-  { id: 'name',      label: 'Pet Name',      type: 'text',   required: true,  placeholder: 'Enter pet name...' },
-  { id: 'dob',       label: 'Date of Birth', type: 'date',   required: true,  placeholder: '' },
-  { id: 'breed',     label: 'Breed Name',    type: 'text',   required: true,  placeholder: 'e.g. Golden Retriever' },
-  { id: 'photo',     label: 'Pet Photo',     type: 'image',  required: false, placeholder: '' },
-  { id: 'instagram', label: 'Pet Instagram', type: 'text',   required: false, placeholder: '@handle' }
+  { id: 'name',      label: 'Pet Name',      type: 'text',  required: true,  placeholder: 'Enter pet name...' },
+  { id: 'dob',       label: 'Date of Birth', type: 'date',  required: true,  placeholder: '' },
+  { id: 'breed',     label: 'Breed Name',    type: 'text',  required: true,  placeholder: 'e.g. Golden Retriever' },
+  { id: 'photo',     label: 'Pet Photo',     type: 'image', required: false, placeholder: '' },
+  { id: 'instagram', label: 'Pet Instagram', type: 'text',  required: false, placeholder: '@handle' },
 ];
 
-const loadFromStorage = (key, fallback) => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch (e) {
-    return fallback;
+// ── Thunks ────────────────────────────────────────────────────────────────
+export const fetchPets = createAsyncThunk(
+  'pets/fetchAll',
+  async (_, { rejectWithValue }) => {
+    const result = await dataService.getAllPets();
+    if (!result.success) return rejectWithValue(result.error);
+    return result.data; // { [userId]: [pets] }
   }
-};
+);
 
-const initialState = {
-  // All pets across all users for this demo (persisted in localStorage)
-  userPets: loadFromStorage('adoremom_pets', {}), 
-  // Dynamic fields configured by admin
-  fields: loadFromStorage('adoremom_pet_fields', DEFAULT_FIELDS)
-};
+export const fetchUserPets = createAsyncThunk(
+  'pets/fetchUser',
+  async (userId, { rejectWithValue }) => {
+    const result = await dataService.getPets(userId);
+    if (!result.success) return rejectWithValue(result.error);
+    return { userId, pets: result.data };
+  }
+);
 
+export const addPetAsync = createAsyncThunk(
+  'pets/add',
+  async ({ userId, pet }, { rejectWithValue }) => {
+    const result = await dataService.addPet(userId, pet);
+    if (!result.success) return rejectWithValue(result.error);
+    return { userId, pet: result.data };
+  }
+);
+
+export const updatePetAsync = createAsyncThunk(
+  'pets/update',
+  async ({ userId, petId, updates }, { rejectWithValue }) => {
+    const result = await dataService.updatePet(userId, petId, updates);
+    if (!result.success) return rejectWithValue(result.error);
+    return { userId, petId, pet: result.data };
+  }
+);
+
+export const deletePetAsync = createAsyncThunk(
+  'pets/delete',
+  async ({ userId, petId }, { rejectWithValue }) => {
+    const result = await dataService.deletePet(userId, petId);
+    if (!result.success) return rejectWithValue(result.error);
+    return { userId, petId };
+  }
+);
+
+// ── Slice ─────────────────────────────────────────────────────────────────
 const petSlice = createSlice({
   name: 'pets',
-  initialState,
+  initialState: {
+    userPets: {},
+    fields:   DEFAULT_FIELDS,
+    status:   'idle',
+    error:    null,
+  },
   reducers: {
-    addPet: (state, action) => {
-      const { userId, pet } = action.payload;
-      if (!userId) return;
-      if (!state.userPets[userId]) state.userPets[userId] = [];
-      
-      const newPet = {
-        ...pet,
-        id: `pet_${Date.now()}`,
-        createdAt: new Date().toISOString()
-      };
-      
-      state.userPets[userId].push(newPet);
-      localStorage.setItem('adoremom_pets', JSON.stringify(state.userPets));
-    },
-    updatePet: (state, action) => {
-      const { userId, petId, updates } = action.payload;
-      if (!userId || !state.userPets[userId]) return;
-      
-      state.userPets[userId] = state.userPets[userId].map(p => 
-        p.id === petId ? { ...p, ...updates } : p
-      );
-      localStorage.setItem('adoremom_pets', JSON.stringify(state.userPets));
-    },
-    deletePet: (state, action) => {
-      const { userId, petId } = action.payload;
-      if (!userId || !state.userPets[userId]) return;
-      
-      state.userPets[userId] = state.userPets[userId].filter(p => p.id !== petId);
-      localStorage.setItem('adoremom_pets', JSON.stringify(state.userPets));
-    },
+    // Fields are admin-configured and can stay synchronous
     updateFields: (state, action) => {
       state.fields = action.payload;
-      localStorage.setItem('adoremom_pet_fields', JSON.stringify(state.fields));
-    }
-  }
+      // Note: field persistence is handled by listener middleware
+    },
+  },
+  extraReducers: (builder) => {
+    // fetchPets (all users)
+    builder
+      .addCase(fetchPets.fulfilled, (state, { payload }) => {
+        state.userPets = payload || {};
+        state.status   = 'succeeded';
+      })
+      .addCase(fetchPets.rejected, (state, { payload }) => {
+        state.status = 'failed';
+        state.error  = payload || 'Failed to load pets.';
+      });
+
+    // fetchUserPets (single user)
+    builder
+      .addCase(fetchUserPets.fulfilled, (state, { payload }) => {
+        state.userPets[payload.userId] = payload.pets;
+      });
+
+    // addPetAsync
+    builder
+      .addCase(addPetAsync.fulfilled, (state, { payload }) => {
+        const { userId, pet } = payload;
+        if (!state.userPets[userId]) state.userPets[userId] = [];
+        state.userPets[userId].push(pet);
+      })
+      .addCase(addPetAsync.rejected, (state, { payload }) => {
+        state.error = payload || 'Failed to add pet.';
+      });
+
+    // updatePetAsync
+    builder
+      .addCase(updatePetAsync.fulfilled, (state, { payload }) => {
+        const { userId, petId, pet } = payload;
+        if (state.userPets[userId]) {
+          state.userPets[userId] = state.userPets[userId].map((p) =>
+            p.id === petId ? pet : p
+          );
+        }
+      });
+
+    // deletePetAsync
+    builder
+      .addCase(deletePetAsync.fulfilled, (state, { payload }) => {
+        const { userId, petId } = payload;
+        if (state.userPets[userId]) {
+          state.userPets[userId] = state.userPets[userId].filter((p) => p.id !== petId);
+        }
+      });
+  },
 });
 
-export const { addPet, updatePet, deletePet, updateFields } = petSlice.actions;
+export const { updateFields } = petSlice.actions;
 
-// Selectors
-export const selectUserPets = (state, userId) => state.pets.userPets[userId] || [];
-export const selectPetFields = (state) => state.pets.fields || DEFAULT_FIELDS;
+// ── Backwards-compatible action aliases ───────────────────────────────────
+// Components that dispatch addPet / updatePet / deletePet will still work
+export const addPet    = addPetAsync;
+export const updatePet = updatePetAsync;
+export const deletePet = deletePetAsync;
+
+// ── Selectors ─────────────────────────────────────────────────────────────
+export const selectUserPets  = (state, userId) => state.pets.userPets[userId] || [];
+export const selectPetFields = (state)         => state.pets.fields || DEFAULT_FIELDS;
 
 export default petSlice.reducer;

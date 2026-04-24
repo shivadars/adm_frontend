@@ -1,32 +1,40 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateProfile } from '../features/auth/authSlice';
+import { updateUserProfile } from '../features/auth/authSlice';
+import { fetchOrders }       from '../features/orders/ordersSlice';
 import { motion } from 'framer-motion';
 import { User, Package, Edit3, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Profile = () => {
-  const { user } = useSelector(s => s.auth);
-  const { orders } = useSelector(s => s.orders);
-  const dispatch = useDispatch();
+  const { user, status: authStatus } = useSelector(s => s.auth);
+  const { orders }                   = useSelector(s => s.orders);
+  const dispatch                     = useDispatch();
+
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
-  const [saved, setSaved] = useState(false);
+  const [form,    setForm]    = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
+  const [saved,   setSaved]   = useState(false);
 
   const myOrders = orders.filter(o => o.userId === user?.id);
 
-  const handleSave = () => {
-    dispatch(updateProfile(form));
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Refresh orders on mount
+  React.useEffect(() => { dispatch(fetchOrders()); }, [dispatch]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    const result = await dispatch(updateUserProfile({ id: user.id, data: form }));
+    if (updateUserProfile.fulfilled.match(result)) {
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
   };
 
   const STATUS_COLORS = {
-    Pending: 'bg-amber-100 text-amber-700',
-    Shipped: 'bg-blue-100 text-blue-700',
+    Pending:   'bg-amber-100 text-amber-700',
+    Shipped:   'bg-blue-100 text-blue-700',
     Delivered: 'bg-green-100 text-green-700',
-    Returned: 'bg-red-100 text-red-700',
+    Returned:  'bg-red-100 text-red-700',
   };
 
   return (
@@ -69,7 +77,13 @@ export const Profile = () => {
                     </div>
                   ))}
                   <div className="flex gap-2 pt-2">
-                    <button onClick={handleSave} className="btn-brand flex-1 justify-center py-2 px-4 text-sm">Save</button>
+                    <button
+                      onClick={handleSave}
+                      disabled={authStatus === 'loading'}
+                      className="btn-brand flex-1 justify-center py-2 px-4 text-sm"
+                    >
+                      {authStatus === 'loading' ? 'Saving...' : 'Save'}
+                    </button>
                     <button onClick={() => setEditing(false)} className="btn-brand-outline flex-1 justify-center py-2 px-4 text-sm">Cancel</button>
                   </div>
                 </>

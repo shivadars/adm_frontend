@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, clearError } from '../features/auth/authSlice';
+import { loginUser, clearError } from '../features/auth/authSlice';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn, PawPrint } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { PawBackground } from '../components/common/PawBackground';
 
 export const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { error, isAuthenticated, role, user } = useSelector(s => s.auth);
+  const { error, isAuthenticated, role, user, status } = useSelector(s => s.auth);
   const pets = useSelector(state => state.pets.userPets[user?.id] || []);
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const loading = status === 'loading';
 
   React.useEffect(() => {
     dispatch(clearError());
@@ -33,10 +34,7 @@ export const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 400)); // simulate latency
-    dispatch(login(form));
-    setLoading(false);
+    dispatch(loginUser(form));
   };
 
   return (

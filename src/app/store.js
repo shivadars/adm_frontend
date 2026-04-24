@@ -31,8 +31,9 @@ import {
   addReview, editReview, deleteReview, toggleFeaturedReview,
   addEnquiry, updateEnquiryStatus, deleteEnquiry,
   updateContent,
-  syncAdminData,
 } from '../features/admin/adminSlice';
+
+import { resetProductStatus } from '../features/products/productSlice';
 
 import {
   addToCart, removeFromCart, clearCart,
@@ -45,12 +46,16 @@ import dataService from '../services/dataService';
 // ── Listener Middleware ───────────────────────────────────────────────────
 const listenerMiddleware = createListenerMiddleware();
 
-// ── Admin: persist products after any product mutation ───────────────────
+// ── Admin: persist products + reset public fetch status ─────────────────
+// After any product CRUD, save to storage AND reset state.products.status
+// so the Shop page's useEffect re-triggers fetchProducts automatically.
 listenerMiddleware.startListening({
   matcher: isAnyOf(addProduct, editProduct, deleteProduct),
   effect: async (action, listenerApi) => {
     const state = listenerApi.getState();
     await dataService.setAdminData('products', state.admin.products);
+    // Reset so Shop re-fetches the updated list
+    listenerApi.dispatch(resetProductStatus());
   },
 });
 

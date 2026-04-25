@@ -12,8 +12,9 @@ export const ENDPOINTS = {
   USER:        (id) => `/users/${id}`,
 
   // ── Products ──────────────────────────────────────────────────────────────
-  PRODUCTS:    '/products',
-  PRODUCT:     (id) => `/products/${id}`,
+  PRODUCTS:    '/superadmin/products',
+  PRODUCT:     (id) => `/superadmin/products/${id}`,
+  PUBLIC_PRODUCTS: '/products',
 
   // ── Cart ──────────────────────────────────────────────────────────────────
   CART:        '/cart',
@@ -28,7 +29,8 @@ export const ENDPOINTS = {
   PET:         (id) => `/pets/${id}`,
 
   // ── Admin / CMS ───────────────────────────────────────────────────────────
-  ADMIN_DATA:  (key) => `/admin/${key}`,
+  ADMIN_DATA:       (key) => `/superadmin/${key}`,
+  ADMIN_DASHBOARD:  '/superadmin/dashboard',
 
   // ── Categories ────────────────────────────────────────────────────────────
   CATEGORIES:  '/categories',

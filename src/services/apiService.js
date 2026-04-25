@@ -283,6 +283,15 @@ export const getAdminData = async (key) => {
   }
 };
 
+export const getAdminDashboard = async () => {
+  try {
+    const response = await axiosInstance.get(ENDPOINTS.ADMIN_DASHBOARD);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
 export const setAdminData = async (key, value) => {
   try {
     const response = await axiosInstance.put(ENDPOINTS.ADMIN_DATA(key), { data: value });
@@ -324,6 +333,7 @@ const apiService = {
   deletePet,
   // Admin CMS
   getAdminData,
+  getAdminDashboard,
   setAdminData,
 };
 

@@ -83,19 +83,27 @@ export const fetchAdminData = createAsyncThunk(
   'admin/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const [products, hero, categories, content, reviews, why, enquiries, customCategories] = await Promise.all([
-        dataService.getAdminData('products'),
-        dataService.getAdminData('hero'),
-        dataService.getAdminData('categories'),
-        dataService.getAdminData('content'),
-        dataService.getAdminData('reviews'),
-        dataService.getAdminData('why'),
-        dataService.getAdminData('enquiries'),
-        dataService.getAdminData('customCategories'),
-      ]);
+      // Fetch the real products from the database using the index() method
+      const res = await dataService.getProducts();
+      
+      // If we are in API mode, we ONLY want real database products
+      const dbProducts = (res.success && Array.isArray(res.data)) ? res.data : [];
+      
+      const hero             = DEFAULT_HERO;
+      const categories       = mockCategories;
+      const content          = DEFAULT_CONTENT;
+      const reviews          = DEFAULT_REVIEWS;
+      const why              = DEFAULT_WHY;
+      const enquiries        = [];
+      const customCategories = DEFAULT_CUSTOM_CATEGORIES;
+
+      console.log('Admin fetch complete. Real Products found:', dbProducts.length);
+
+      // ⚠️ FIX: Use ONLY database products, NO MORE MOCK DATA merging.
+      const allProducts = dbProducts;
 
       // Auto-migrate legacy hero links
-      let heroData = hero.data;
+      let heroData = hero;
       if (Array.isArray(heroData)) {
         heroData = heroData.map((slide) => ({
           ...slide,
@@ -106,14 +114,14 @@ export const fetchAdminData = createAsyncThunk(
       }
 
       return {
-        products:          products.data         || mockProducts,
-        heroSlides:        heroData              || DEFAULT_HERO,
-        categories:        categories.data       || mockCategories,
-        content:           content.data          || DEFAULT_CONTENT,
-        reviews:           reviews.data          || DEFAULT_REVIEWS,
-        whyChooseUs:       why.data              || DEFAULT_WHY,
-        enquiries:         enquiries.data        || [],
-        customCategories:  customCategories.data || DEFAULT_CUSTOM_CATEGORIES,
+        products:          allProducts,
+        heroSlides:        heroData,
+        categories:        categories,
+        content:           content,
+        reviews:           reviews,
+        whyChooseUs:       why,
+        enquiries:         enquiries,
+        customCategories:  customCategories,
       };
     } catch (e) {
       return rejectWithValue(e.message);
@@ -135,7 +143,7 @@ export const syncAdminData = createAsyncThunk(
 const adminSlice = createSlice({
   name: 'admin',
   initialState: {
-    products:         mockProducts,
+    products:         [],
     heroSlides:       DEFAULT_HERO,
     categories:       mockCategories,
     content:          DEFAULT_CONTENT,
@@ -152,7 +160,17 @@ const adminSlice = createSlice({
     },
     editProduct: (state, { payload }) => {
       const idx = state.products.findIndex((p) => p.id === payload.id);
-      if (idx !== -1) state.products[idx] = { ...state.products[idx], ...payload };
+      if (idx !== -1) {
+        // Merge the updates
+        state.products[idx] = { ...state.products[idx], ...payload };
+        
+        // ⚠️ CRITICAL FIX: If we have a new database ID, use it and 
+        // discard the temporary one completely.
+        if (payload.newId) {
+          state.products[idx].id = payload.newId;
+          delete state.products[idx].newId;
+        }
+      }
     },
     deleteProduct: (state, { payload: id }) => {
       state.products = state.products.filter((p) => p.id !== id);

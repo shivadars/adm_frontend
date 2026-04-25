@@ -59,14 +59,46 @@ listenerMiddleware.startListening({
 });
 
 // ── Admin: persist products + reset public fetch status ─────────────────
-// After any product CRUD, save to storage AND reset state.products.status
-// so the Shop page's useEffect re-triggers fetchProducts automatically.
+listenerMiddleware.startListening({
+  actionCreator: addProduct,
+  effect: async (action, listenerApi) => {
+    const result = await dataService.addProduct(action.payload);
+    
+    // If the API returned a real ID, we need to update our local state
+    // so that future Edits or Deletes use the correct Database ID.
+    if (result.success && result.data?.id) {
+      listenerApi.dispatch(editProduct({ 
+        id: action.payload.id, // The temporary 'p-...' ID
+        newId: result.data.id  // The real database integer ID
+      }));
+    }
+  },
+});
+
+listenerMiddleware.startListening({
+  actionCreator: editProduct,
+  effect: async (action) => {
+    // ⚠️ IMPORTANT: Skip if this is just an ID sync from addProduct.
+    // We don't want to call the API for a product that doesn't "exist" yet by ID.
+    if (action.payload.newId) return;
+
+    if (action.payload.id) {
+      await dataService.updateProduct(action.payload.id, action.payload);
+    }
+  },
+});
+
+listenerMiddleware.startListening({
+  actionCreator: deleteProduct,
+  effect: async (action) => {
+    await dataService.deleteProduct(action.payload);
+  },
+});
+
+// Reset public fetch status after any admin product change
 listenerMiddleware.startListening({
   matcher: isAnyOf(addProduct, editProduct, deleteProduct),
   effect: async (action, listenerApi) => {
-    const state = listenerApi.getState();
-    await dataService.setAdminData('products', state.admin.products);
-    // Reset so Shop re-fetches the updated list
     listenerApi.dispatch(resetProductStatus());
   },
 });
@@ -158,6 +190,23 @@ listenerMiddleware.startListening({
   effect: async (action) => {
     // petFields are local-only admin config; save directly
     await dataService.setAdminData('pet_fields', action.payload);
+  },
+});
+
+// ── Auth: fetch data after login ────────────────────────────────────
+listenerMiddleware.startListening({
+  matcher: (action) => action.type === 'auth/login/fulfilled' || action.type === 'auth/register/fulfilled',
+  effect: async (action, listenerApi) => {
+    const { role } = listenerApi.getState().auth;
+    
+    // Always fetch pets and orders after login
+    listenerApi.dispatch(fetchOrders());
+    listenerApi.dispatch(fetchPets());
+    
+    // If admin, fetch CMS data too
+    if (role === 'admin' || role === 'superadmin') {
+      listenerApi.dispatch(fetchAdminData());
+    }
   },
 });
 

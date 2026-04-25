@@ -340,10 +340,15 @@ export const AdminProducts = () => {
                   <td className="px-4 py-3 font-semibold text-brand-dark max-w-[160px] truncate">{p.name}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {/* Support both old `category` string and new `categories` array */}
-                      {(p.categories ?? [p.category]).filter(Boolean).map(cat => (
-                        <span key={cat} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 capitalize whitespace-nowrap">{cat}</span>
-                      ))}
+                      {/* Support both old `category` string, new `categories` array, and backend objects */}
+                      {(p.categories ?? (p.category ? [p.category] : [])).filter(Boolean).map(cat => {
+                        const catName = typeof cat === 'object' ? (cat.name || 'Uncategorized') : cat;
+                        return (
+                          <span key={catName} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 capitalize whitespace-nowrap">
+                            {catName}
+                          </span>
+                        );
+                      })}
                     </div>
                   </td>
                   <td className="px-4 py-3">

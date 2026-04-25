@@ -331,7 +331,8 @@ export const Home = () => {
     if (Array.isArray(p.categories) && p.categories.length > 0) {
       return p.categories.includes(catName);
     }
-    return p.category === catName;
+    const currentCatName = typeof p.category === 'object' ? p.category?.name : p.category;
+    return currentCatName === catName;
   };
 
   // Trending: first 4 products that are NOT in New Collections, fallback to first 4

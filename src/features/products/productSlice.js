@@ -15,6 +15,14 @@ export const fetchProducts = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     const result = await dataService.getProducts(params || {});
     if (!result.success) return rejectWithValue(result.error);
+    
+    // In API mode, we merge with mock products so the site feels "full"
+    // until the user adds many products.
+    if (import.meta.env.VITE_DATA_SOURCE === 'api') {
+      const { mockProducts } = await import('../../services/apiMockData');
+      return [...result.data, ...mockProducts];
+    }
+    
     return result.data;
   }
 );

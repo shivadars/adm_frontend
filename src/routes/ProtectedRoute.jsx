@@ -13,7 +13,7 @@ export const ProtectedRoute = ({ children }) => {
 
 export const AdminRoute = ({ children }) => {
   const { isAuthenticated, role } = useSelector(s => s.auth);
-  if (!isAuthenticated || role !== 'admin') {
+  if (!isAuthenticated || (role !== 'admin' && role !== 'superadmin')) {
     return <Navigate to="/" replace />;
   }
   return children;

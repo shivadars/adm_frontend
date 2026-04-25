@@ -226,7 +226,7 @@ export const ProfilePanel = ({ open, onClose }) => {
           {isAuthenticated && role === 'customer' && (
             <CustomerPanel user={user} onClose={onClose} onLogout={handleLogout} />
           )}
-          {isAuthenticated && role === 'admin' && (
+          {isAuthenticated && (role === 'admin' || role === 'superadmin') && (
             <AdminPanel user={user} onClose={onClose} onLogout={handleLogout} />
           )}
         </motion.div>

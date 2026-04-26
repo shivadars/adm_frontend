@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import AppRoutes   from './routes/AppRoutes';
-import { Navbar }      from './components/layout/Navbar';
-import { Footer }      from './components/layout/Footer';
-import { OfferStrip }  from './components/layout/OfferStrip';
-import { CartDrawer }  from './components/cart/CartDrawer';
+import AppRoutes from './routes/AppRoutes';
+import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
+import { OfferStrip } from './components/layout/OfferStrip';
+import { CartDrawer } from './components/cart/CartDrawer';
 import { EditModeBar } from './components/admin/EditModeBar';
 
 const SplashScreen = () => (

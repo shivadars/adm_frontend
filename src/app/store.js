@@ -197,11 +197,13 @@ listenerMiddleware.startListening({
 listenerMiddleware.startListening({
   matcher: (action) => action.type === 'auth/login/fulfilled' || action.type === 'auth/register/fulfilled',
   effect: async (action, listenerApi) => {
-    const { role } = listenerApi.getState().auth;
+    const { role, user } = listenerApi.getState().auth;
     
     // Always fetch pets and orders after login
     listenerApi.dispatch(fetchOrders());
-    listenerApi.dispatch(fetchPets());
+    if (user?.id) {
+      listenerApi.dispatch(fetchUserPets(user.id));
+    }
     
     // If admin, fetch CMS data too
     if (role === 'admin' || role === 'superadmin') {
@@ -231,18 +233,32 @@ import { bootstrapAuth }  from '../features/auth/authSlice';
 import { fetchAdminData } from '../features/admin/adminSlice';
 import { fetchOrders }    from '../features/orders/ordersSlice';
 import { hydrateCart }    from '../features/cart/cartSlice';
-import { fetchPets }      from '../features/pets/petSlice';
+import { fetchPets, fetchUserPets } from '../features/pets/petSlice';
 
 /**
  * bootstrapApp — call once in main.jsx after the store is created.
  * Loads all persisted state from the service layer.
  */
 export const bootstrapApp = async () => {
-  await store.dispatch(bootstrapAuth());
-  await Promise.all([
+  // 1. Restore auth session first
+  const authResult = await store.dispatch(bootstrapAuth());
+  const user = authResult.payload?.user;
+
+  // 2. Fetch data based on auth status
+  const tasks = [
     store.dispatch(fetchAdminData()),
-    store.dispatch(fetchOrders()),
     store.dispatch(hydrateCart()),
-    store.dispatch(fetchPets()),
-  ]);
+  ];
+
+  if (user?.id) {
+    tasks.push(store.dispatch(fetchOrders()));
+    tasks.push(store.dispatch(fetchUserPets(user.id)));
+    
+    // Only call fetchPets (all users) for admins
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      tasks.push(store.dispatch(fetchPets()));
+    }
+  }
+
+  await Promise.all(tasks);
 };

@@ -6,13 +6,21 @@ import {
   PawPrint, Image as ImageIcon, Calendar, AtSign, 
   ChevronRight, Heart, Plus, X 
 } from 'lucide-react';
-import { addPet, selectPetFields } from '../features/pets/petSlice';
+import { addPet, selectPetFields, selectUserPets } from '../features/pets/petSlice';
 
 const PetOnboarding = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const fields = useSelector(selectPetFields) || [];
+  const pets = useSelector(state => selectUserPets(state, user?.id)) || [];
+
+  // If pets already exist, redirect to the dashboard
+  React.useEffect(() => {
+    if (pets.length > 0) {
+      navigate('/profile/pets');
+    }
+  }, [pets, navigate]);
 
   if (!Array.isArray(fields)) return null;
 

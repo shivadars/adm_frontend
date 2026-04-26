@@ -87,8 +87,17 @@ const petSlice = createSlice({
     // fetchPets (all users)
     builder
       .addCase(fetchPets.fulfilled, (state, { payload }) => {
-        state.userPets = payload || {};
-        state.status   = 'succeeded';
+        // API mode returns an array of pets for the CURRENT user.
+        // Local mode returns an object { userId: [pets] }.
+        if (Array.isArray(payload)) {
+          // We can't know the userId here easily without passing it, 
+          // but we shouldn't overwrite the whole state with an array.
+          // For now, we'll keep the object structure.
+          state.status = 'succeeded';
+        } else {
+          state.userPets = payload || {};
+          state.status   = 'succeeded';
+        }
       })
       .addCase(fetchPets.rejected, (state, { payload }) => {
         state.status = 'failed';

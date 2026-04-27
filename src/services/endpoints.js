@@ -38,4 +38,6 @@ export const ENDPOINTS = {
 
   // ── Categories ────────────────────────────────────────────────────────────
   CATEGORIES:  '/categories',
+  SUPERADMIN_CATEGORIES: '/superadmin/categories',
+  SUPERADMIN_CATEGORY: (id) => `/superadmin/categories/${id}`,
 };

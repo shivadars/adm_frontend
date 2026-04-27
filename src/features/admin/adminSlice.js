@@ -83,11 +83,14 @@ export const fetchAdminData = createAsyncThunk(
   'admin/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      // Fetch the real products from the database using the index() method
-      const res = await dataService.getProducts();
+      // Fetch the real products and categories from the database
+      const [resProducts, resCategories] = await Promise.all([
+        dataService.getProducts(),
+        dataService.getCategories()
+      ]);
       
-      // If we are in API mode, we ONLY want real database products
-      const dbProducts = (res.success && Array.isArray(res.data)) ? res.data : [];
+      const dbProducts   = (resProducts.success && Array.isArray(resProducts.data)) ? resProducts.data : [];
+      const dbCategories = (resCategories.success && Array.isArray(resCategories.data)) ? resCategories.data : [];
       
       const hero             = DEFAULT_HERO;
       const categories       = mockCategories;
@@ -95,7 +98,7 @@ export const fetchAdminData = createAsyncThunk(
       const reviews          = DEFAULT_REVIEWS;
       const why              = DEFAULT_WHY;
       const enquiries        = [];
-      const customCategories = DEFAULT_CUSTOM_CATEGORIES;
+      const customCategories = dbCategories.length > 0 ? dbCategories : DEFAULT_CUSTOM_CATEGORIES;
 
       console.log('Admin fetch complete. Real Products found:', dbProducts.length);
 
@@ -194,14 +197,23 @@ const adminSlice = createSlice({
 
     // ── Custom Categories (admin-managed list for product dropdown) ───────
     addCategory: (state, { payload }) => {
-      const name = payload.trim();
-      if (!name) return;
-      const alreadyExists = state.customCategories.some(
-        (c) => c.name.toLowerCase() === name.toLowerCase()
-      );
-      if (alreadyExists) return;
-      const urlKey = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      state.customCategories.push({ id: `cat-${Date.now()}`, name, urlKey });
+      // payload can be a string (new name) or an object (for sync)
+      if (typeof payload === 'string') {
+        const name = payload.trim();
+        if (!name) return;
+        const alreadyExists = state.customCategories.some(
+          (c) => c.name.toLowerCase() === name.toLowerCase()
+        );
+        if (alreadyExists) return;
+        const urlKey = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        state.customCategories.push({ id: `cat-${Date.now()}`, name, urlKey });
+      } else {
+        // Sync real ID from backend
+        const idx = state.customCategories.findIndex(c => c.id === payload.id);
+        if (idx !== -1 && payload.newId) {
+          state.customCategories[idx].id = payload.newId;
+        }
+      }
     },
     deleteCategory: (state, { payload: id }) => {
       state.customCategories = state.customCategories.filter((c) => c.id !== id);

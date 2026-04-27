@@ -215,6 +215,34 @@ export const deleteProduct = async (id) => {
   }
 };
 
+// ── Categories ──────────────────────────────────────────────────────────────
+export const getCategories = async () => {
+  try {
+    const response = await axiosInstance.get(ENDPOINTS.SUPERADMIN_CATEGORIES);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const addCategory = async (name) => {
+  try {
+    const response = await axiosInstance.post(ENDPOINTS.SUPERADMIN_CATEGORIES, { name });
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const deleteCategory = async (id) => {
+  try {
+    const response = await axiosInstance.delete(ENDPOINTS.SUPERADMIN_CATEGORY(id));
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
 // ── Cart ─────────────────────────────────────────────────────────────────────
 export const getCart = async () => {
   try {
@@ -390,6 +418,9 @@ const apiService = {
   addProduct,
   updateProduct,
   deleteProduct,
+  getCategories,
+  addCategory,
+  deleteCategory,
   // Cart
   getCart,
   saveCart,

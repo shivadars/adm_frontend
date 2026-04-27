@@ -159,10 +159,34 @@ listenerMiddleware.startListening({
 
 // ── Admin: persist custom categories (add/delete) ─────────────────────
 listenerMiddleware.startListening({
-  matcher: isAnyOf(addCategory, deleteCategory),
+  actionCreator: addCategory,
   effect: async (action, listenerApi) => {
-    const state = listenerApi.getState();
-    await dataService.setAdminData('customCategories', state.admin.customCategories);
+    // Only call API if payload is a string (initial creation)
+    if (typeof action.payload !== 'string') return;
+
+    const result = await dataService.addCategory(action.payload);
+    
+    // Sync the real database ID back to the local state
+    if (result.success && result.data?.id) {
+      const state = listenerApi.getState();
+      // Find the temp cat we just added (it's at the end)
+      const tempCat = state.admin.customCategories[state.admin.customCategories.length - 1];
+      if (tempCat) {
+        listenerApi.dispatch(addCategory({
+          id: tempCat.id,
+          newId: result.data.id
+        }));
+      }
+    }
+  },
+});
+
+listenerMiddleware.startListening({
+  actionCreator: deleteCategory,
+  effect: async (action) => {
+    // Only call API if payload is NOT an object (handle real ID)
+    if (typeof action.payload === 'object') return;
+    await dataService.deleteCategory(action.payload);
   },
 });
 

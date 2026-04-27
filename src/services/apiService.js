@@ -248,7 +248,13 @@ export const getAllPets = async () => {
 
 export const addPet = async (userId, pet) => {
   try {
-    const response = await axiosInstance.post('/pets', { userId, ...pet });
+    // Map frontend fields to backend names
+    const data = {
+      ...pet,
+      image: pet.photo,
+      instagram_username: pet.instagram
+    };
+    const response = await axiosInstance.post(ENDPOINTS.PETS(userId), data);
     return unwrap(response);
   } catch (e) {
     return handleError(e);
@@ -257,7 +263,14 @@ export const addPet = async (userId, pet) => {
 
 export const updatePet = async (userId, petId, updates) => {
   try {
-    const response = await axiosInstance.put(ENDPOINTS.PET(petId), { userId, ...updates });
+    // Map frontend fields to backend names and flatten measurements
+    const data = {
+      ...updates,
+      image: updates.photo || updates.image,
+      instagram_username: updates.instagram || updates.instagram_username,
+      ...(updates.measurements || {})
+    };
+    const response = await axiosInstance.put(ENDPOINTS.PET(petId), data);
     return unwrap(response);
   } catch (e) {
     return handleError(e);

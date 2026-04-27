@@ -32,6 +32,10 @@ export const ENDPOINTS = {
   ADMIN_DATA:       (key) => `/superadmin/${key}`,
   ADMIN_DASHBOARD:  '/superadmin/dashboard',
 
+  // ── Addresses ─────────────────────────────────────────────────────────────
+  ADDRESSES:   '/addresses',
+  ADDRESS:     (id) => `/addresses/${id}`,
+
   // ── Categories ────────────────────────────────────────────────────────────
   CATEGORIES:  '/categories',
 };

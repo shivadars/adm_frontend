@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axiosInstance from '../services/axiosInstance';
-import { ENDPOINTS } from '../services/endpoints';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, toggleCart } from '../features/cart/cartSlice';
 import { addEnquiry } from '../features/admin/adminSlice';
 import { fetchProducts } from '../features/products/productSlice';
 import { DEFAULT_FABRICS, DEFAULT_COLORS } from '../features/admin/adminSlice';
 import { 
-  Star, Truck, ShieldCheck, ChevronRight, Heart, Ruler, 
-  Palette, X, Check, Send, ChevronDown, ChevronUp,
-  Wind, RotateCcw, ShoppingBag, Eye
+  Star, ChevronRight, Heart, 
+  Palette, X, Check, ChevronDown, ChevronUp,
+  Wind, RotateCcw, ShoppingBag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCard } from '../components/product/ProductCard';
@@ -122,88 +120,6 @@ const ColorEnquiryModal = ({ product, onClose, onSubmit }) => {
   );
 };
 
-// ── Custom Size Modal ────────────────────────────────────────────────────────
-const CustomSizeModal = ({ product, onClose, onSubmit }) => {
-  const MEASUREMENTS = [
-    { key: 'neck',   label: 'Neck Circumference',  hint: 'Measure around the base of the neck' },
-    { key: 'chest',  label: 'Chest / Belly Girth',  hint: 'Measure the widest part of the chest' },
-    { key: 'back',   label: 'Back Length',          hint: 'From back of neck to base of tail' },
-    { key: 'weight', label: 'Pet Weight (kg)',      hint: 'Helps us suggest the right fit' },
-  ];
-  const [form, setForm] = useState({ neck: '', chest: '', back: '', weight: '', notes: '' });
-  const [done, setDone] = useState(false);
-
-  const handleSubmit = () => {
-    if (!form.neck && !form.chest && !form.back) return;
-    onSubmit({ type: 'custom_size', measurements: form });
-    setDone(true);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-        className="bg-white rounded-2xl w-full max-w-md shadow-2xl"
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-brand-border">
-          <div className="flex items-center gap-2">
-            <Ruler className="w-5 h-5 text-brand-dark" />
-            <h3 className="font-serif text-lg font-bold text-brand-dark">Custom Size Request</h3>
-          </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-brand-muted"><X className="w-5 h-5" /></button>
-        </div>
-
-        {done ? (
-          <div className="px-6 py-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-            <h4 className="font-serif text-xl font-bold text-brand-dark mb-2">Measurements Received!</h4>
-            <p className="text-sm text-brand-dark/70 font-sans mb-6">We'll craft a perfect custom-fit outfit for your pet. Our team will confirm the order details with you shortly.</p>
-            <button onClick={onClose} className="btn-brand">Close</button>
-          </div>
-        ) : (
-          <div className="px-6 py-5 space-y-4">
-            <div className="bg-brand-muted rounded-xl px-4 py-3 text-xs text-brand-dark/70 font-sans">
-              📏 All measurements in <strong>centimetres (cm)</strong> unless noted. Use a soft tape measure for best results.
-            </div>
-            {MEASUREMENTS.map(({ key, label, hint }) => (
-              <div key={key}>
-                <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">
-                  {label} {key !== 'weight' && <span className="font-normal normal-case tracking-normal text-brand-dark/40">(cm)</span>}
-                </label>
-                <input
-                  type="number" step="0.5" value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  placeholder={hint}
-                  className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-brand-dark"
-                />
-              </div>
-            ))}
-            <div>
-              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Additional Notes <span className="font-normal normal-case tracking-normal text-brand-dark/40">(optional)</span></label>
-              <textarea
-                value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
-                placeholder="e.g. My dog has a broad chest, please allow extra room..."
-                className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-brand-dark resize-none"
-              />
-            </div>
-            <div className="flex gap-3 pt-1">
-              <button onClick={onClose} className="flex-1 py-2.5 border border-brand-border rounded-xl text-sm font-semibold text-brand-dark/80 hover:bg-brand-muted transition-colors font-sans">Cancel</button>
-              <button
-                onClick={handleSubmit}
-                disabled={!form.neck && !form.chest && !form.back}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 font-sans disabled:opacity-50"
-                style={{ background: '#073b3a' }}
-              >
-                <Send className="w-4 h-4" /> Submit Measurements
-              </button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </div>
-  );
-};
 
 // ── Main Product Details ─────────────────────────────────────────────────────
 export const ProductDetails = () => {
@@ -212,16 +128,14 @@ export const ProductDetails = () => {
   const dispatch = useDispatch();
   const allProducts = useSelector(s => s.products.items);
   
-  const [product, setProduct]         = useState(null);
-  const [loading, setLoading]         = useState(true);
-  const [selectedSize, setSelectedSize]       = useState('');
+  const [product, setProduct]             = useState(null);
+  const [loading, setLoading]             = useState(true);
   const [selectedMaterial, setSelectedMaterial] = useState('');
-  const [selectedColor, setSelectedColor]     = useState('');
-  const [quantity, setQuantity]       = useState(1);
-  const [wishlisted, setWishlisted]   = useState(false);
-  const [added, setAdded]             = useState(false);
-  const [colorModal, setColorModal]   = useState(false);
-  const [sizeModal, setSizeModal]     = useState(false);
+  const [selectedColor, setSelectedColor]       = useState('');
+  const [quantity, setQuantity]           = useState(1);
+  const [wishlisted, setWishlisted]       = useState(false);
+  const [added, setAdded]                 = useState(false);
+  const [colorModal, setColorModal]       = useState(false);
   
   // New input fields
   const [petName, setPetName] = useState('');
@@ -230,34 +144,29 @@ export const ProductDetails = () => {
   const [activeImg, setActiveImg] = useState(0);
 
   useEffect(() => {
-    const fetchCurrentProduct = async () => {
-      try {
-        const res = await axiosInstance.get(ENDPOINTS.PRODUCT_DETAILS(id));
-        const p = res.data.data;
-        setProduct(p);
-        if (p.sizes?.length > 0) setSelectedSize(p.sizes[0]);
-        if (p.materials?.length > 0) setSelectedMaterial(p.materials[0]);
-        if (p.colors?.length > 0) setSelectedColor(p.colors[0]);
-        
-        // Ensure all products are available for "Similar Products"
-        if (allProducts.length === 0) {
-          dispatch(fetchProducts());
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCurrentProduct();
+    // If products haven't loaded yet, fetch them via dataService first
+    if (allProducts.length === 0) {
+      dispatch(fetchProducts());
+    }
     window.scrollTo(0, 0);
-  }, [id, dispatch, allProducts.length]);
+  }, [dispatch, allProducts.length]);
+
+  // Derive the product from the Redux store — works in both local & API mode
+  useEffect(() => {
+    if (allProducts.length === 0) return; // wait for products to load
+    const found = allProducts.find(p => String(p.id) === String(id));
+    if (found) {
+      setProduct(found);
+      if (found.materials?.length > 0) setSelectedMaterial(found.materials[0]);
+      if (found.colors?.length > 0)    setSelectedColor(found.colors[0]);
+    }
+    setLoading(false);
+  }, [id, allProducts]);
 
   const handleAddToCart = (e, andRedirect = false) => {
     dispatch(addToCart({ 
       product, 
       quantity, 
-      size: selectedSize, 
       material: selectedMaterial, 
       color: selectedColor,
       petName,
@@ -456,36 +365,6 @@ export const ProductDetails = () => {
             {/* Customization Selectors */}
             <div className="space-y-8 mb-10">
               
-              {/* Size Selector */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-bold text-brand-dark uppercase tracking-widest font-sans">Select Size</span>
-                  <button className="flex items-center gap-1.5 text-[10px] font-extrabold text-brand-pink uppercase tracking-wider hover:underline transition-all">
-                    <Ruler className="w-3 h-3" /> Size Guide
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes?.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`w-12 h-12 rounded-2xl border-2 text-xs font-bold transition-all duration-300 font-sans ${
-                        selectedSize === size
-                          ? 'border-brand-pink bg-brand-pink text-white shadow-soft scale-110'
-                          : 'border-brand-border text-brand-dark/60 bg-white hover:border-brand-pink'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setSizeModal(true)}
-                    className="h-12 px-5 rounded-2xl border-2 border-dashed border-brand-dark/20 text-[10px] font-bold text-brand-dark/60 hover:border-brand-pink hover:text-brand-pink transition-all uppercase tracking-wider"
-                  >
-                    Custom Size
-                  </button>
-                </div>
-              </div>
 
               {/* Material Selector */}
               <div>
@@ -634,7 +513,6 @@ export const ProductDetails = () => {
       {/* Modals */}
       <AnimatePresence>
         {colorModal && <ColorEnquiryModal product={product} onClose={() => setColorModal(false)} onSubmit={handleEnquiry} />}
-        {sizeModal  && <CustomSizeModal   product={product} onClose={() => setSizeModal(false)}  onSubmit={handleEnquiry} />}
       </AnimatePresence>
     </div>
   );

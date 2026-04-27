@@ -7,7 +7,7 @@ import { ImageInput } from './ImageInput';
 
 const EMPTY = {
   name: '', mrp: '', sellingPrice: '', categories: ['Male'], image: '',
-  sizes: 'XS,S,M,L', tags: '', brand: "A'DOREMOM", description: '', stock: 50,
+  tags: '', brand: "A'DOREMOM", description: '',
   rating: 4.5, reviews: 0,
   materials: [],
   colors: [],
@@ -42,7 +42,6 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
   const [form, setForm] = useState({
     ...EMPTY,
     ...data,
-    sizes:      data?.sizes      ? (Array.isArray(data.sizes)      ? data.sizes.join(', ')      : data.sizes)      : EMPTY.sizes,
     tags:       data?.tags       ? (Array.isArray(data.tags)       ? data.tags.join(', ')       : data.tags)       : EMPTY.tags,
     materials:  data?.materials  ? [...data.materials]  : [],
     colors:     data?.colors     ? [...data.colors]     : [],
@@ -66,10 +65,8 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
     mrp:          Number(form.mrp),
     sellingPrice: Number(form.sellingPrice),
     price:        Number(form.sellingPrice),
-    stock:        Number(form.stock),
-    sizes:        String(form.sizes).split(',').map(s => s.trim()).filter(Boolean),
     tags:         String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
-    // Keep first category as primary `category` for backwards compat with any old reads
+    // Keep first category as primary `category` for backwards compat
     category:     form.categories[0] || 'Male',
   });
 
@@ -84,11 +81,9 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
         <div className="overflow-y-auto px-6 py-4 space-y-4 flex-1">
           {/* Basic text fields */}
           {[
-            ['Product Name',             'name',        'text'],
-            ['Description',              'description', 'text'],
-            ['Sizes (comma-separated)',   'sizes',       'text'],
-            ['Tags (comma-separated)',    'tags',        'text'],
-            ['Stock',                    'stock',       'number'],
+            ['Product Name',           'name',        'text'],
+            ['Description',            'description', 'text'],
+            ['Tags (comma-separated)',  'tags',        'text'],
           ].map(([label, key, type]) => (
             <div key={key}>
               <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">{label}</label>
@@ -331,7 +326,7 @@ export const AdminProducts = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-brand-muted text-xs text-brand-dark/70 uppercase tracking-wider font-sans">
-              <tr>{['Image','Name','Categories','Pricing','Materials','Colors','Stock','Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
+              <tr>{['Image','Name','Categories','Pricing','Materials','Colors','Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map(p => (
@@ -376,7 +371,6 @@ export const AdminProducts = () => {
                       {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length-5}</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-brand-dark/70">{p.stock ?? '—'}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <button onClick={() => setModal({ data: p, isNew: false })} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>

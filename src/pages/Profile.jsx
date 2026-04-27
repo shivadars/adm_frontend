@@ -38,7 +38,7 @@ export const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light">
+    <div className="min-h-screen ">
       <div className="bg-white border-b border-brand-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="brand-overline mb-1">Account</p>
@@ -73,7 +73,7 @@ export const Profile = () => {
                     <div key={key}>
                       <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/50 font-sans">{label}</label>
                       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                        className="w-full mt-1 border border-brand-border bg-brand-light rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-brand-dark" />
+                        className="w-full mt-1 border border-brand-border  rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-brand-dark" />
                     </div>
                   ))}
                   <div className="flex gap-2 pt-2">

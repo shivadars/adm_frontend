@@ -9,13 +9,13 @@ export default {
       colors: {
         // A'DOREMOM Pure Blue Palette
         brand: {
-          light:     '#e8f0fe',   // Base background (ice blue)
-          muted:     '#d2e3fc',   // Soft Section bg (muted blue)
-          dark:      '#0a2540',   // Deep text/headings (navy blue)
-          blue:      '#2563eb',   // Primary accents/buttons (royal blue)
+          light:     '#e0f4ee',   // Base background (mint green)
+          muted:     '#ccebe1',   // Soft Section bg (muted green)
+          dark:      '#073b3a',   // Deep text/headings (dark green)
+          blue:      '#073b3a',   // Primary accents/buttons (dark green)
           pink:      '#ff6b81',   // Boutique accent (vibrant coral pink)
-          sky:       '#38bdf8',   // Hovers/Highlights (bright sky blue)
-          border:    '#bfdbfe',   // Lines/Borders (soft border blue)
+          sky:       '#38bdf8',   // Hovers/Highlights
+          border:    '#b8e3d6',   // Lines/Borders (soft green border)
         },
       },
       fontFamily: {

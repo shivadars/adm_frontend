@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addProduct, editProduct, deleteProduct, addCategory, deleteCategory } from '../features/admin/adminSlice';
+import { addProduct, editProduct, deleteProduct, addCategory, deleteCategory, addSubCategory, deleteSubCategory } from '../features/admin/adminSlice';
 import { DEFAULT_FABRICS, DEFAULT_COLORS } from '../features/admin/adminSlice';
-import { Plus, Edit2, Trash2, X, Check, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Check, Tag, PlusCircle } from 'lucide-react';
 import { ImageInput } from './ImageInput';
 
+// Removed hardcoded COLLECTIONS and CATEGORIES_BY_COLLECTION. 
+// Now pulled dynamically from Redux state.
+
 const EMPTY = {
-  name: '', mrp: '', sellingPrice: '', categories: ['Male'], image: '',
+  name: '', mrp: '', sellingPrice: '', image: '',
+  collection: 'Male',   // primary collection
+  subCategory: '',      // e.g. Casual, Party Wear…
+  categories: ['Male'], // kept for backwards compat
   tags: '', description: '',
   rating: 4.5, reviews: 0,
-  materials: [],
-  colors: [],
-  stock: 10,
+  materials: [], colors: [],
 };
 
 // ── Chip multi-select (materials, colors, categories) ──────────────────────
@@ -38,20 +42,19 @@ const ChipSelect = ({ label, options, selected, onToggle, renderChip, colorMode 
 );
 
 // ── Product Add/Edit Modal ─────────────────────────────────────────────────
-const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
+const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesByCol }) => {
   const [form, setForm] = useState({
     ...EMPTY,
     ...data,
-    tags: data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
-    materials: data?.materials ? [...data.materials] : [],
-    colors: data?.colors ? [...data.colors] : [],
-    // Migrate legacy single `category` string → `categories` array
-    categories: data?.categories
-      ? [...data.categories]
-      : data?.category
-        ? [data.category]
-        : EMPTY.categories,
+    collection:  data?.collection  || (data?.categories?.[0]) || (data?.category) || 'Male',
+    subCategory: data?.subCategory || '',
+    categories:  data?.categories  ? [...data.categories] : data?.category ? [data.category] : EMPTY.categories,
+    tags:        data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
+    materials:   data?.materials ? [...data.materials] : [],
+    colors:      data?.colors    ? [...data.colors]    : [],
   });
+
+  const COLLECTIONS = customCollections.map(c => c.name);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -62,12 +65,13 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
 
   const handleSave = () => onSave({
     ...form,
-    mrp: Number(form.mrp),
+    mrp:          Number(form.mrp),
     sellingPrice: Number(form.sellingPrice),
-    price: Number(form.sellingPrice),
-    tags: String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
-    // Keep first category as primary `category` for backwards compat
-    category: form.categories[0] || 'Male',
+    price:        Number(form.sellingPrice),
+    tags:         String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
+    // Keep backwards-compat fields
+    categories:   [form.collection],
+    category:     form.collection,
   });
 
   return (
@@ -91,19 +95,14 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
             </div>
           ))}
 
-          {/* Pricing */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">MRP (₹)</label>
               <input type="number" value={form.mrp} onChange={set('mrp')} placeholder="1599" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Selling (₹)</label>
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Selling Price (₹)</label>
               <input type="number" value={form.sellingPrice} onChange={set('sellingPrice')} placeholder="1299" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Stock</label>
-              <input type="number" value={form.stock} onChange={set('stock')} placeholder="10" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
             </div>
           </div>
           {form.mrp && form.sellingPrice && Number(form.mrp) > Number(form.sellingPrice) && (
@@ -114,40 +113,51 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
             </div>
           )}
 
-          {/* ── Categories — multi-select chips ── */}
+          {/* ── Collection — fixed chips: Male / Female / Accessories ── */}
           <div>
             <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-2 block">
-              Categories <span className="text-brand-dark/40 normal-case tracking-normal font-normal">(select all that apply — product shows in each)</span>
+              Collection <span className="text-red-400">*</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {customCategories.map(cat => {
-                const active = form.categories.includes(cat.name);
+            <div className="flex gap-2">
+              {COLLECTIONS.map(col => {
+                const active = form.collection === col;
                 return (
                   <button
-                    key={cat.id}
+                    key={col}
                     type="button"
-                    onClick={() => {
-                      setForm(f => ({
-                        ...f,
-                        categories: active
-                          ? f.categories.filter(c => c !== cat.name)
-                          : [...f.categories, cat.name],
-                      }));
-                    }}
-                    className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${active
-                      ? 'border-green-600 bg-green-600 text-white'
-                      : 'border-brand-border bg-white text-brand-dark/70 hover:border-green-600'
-                      }`}
+                    onClick={() => setForm(f => ({ ...f, collection: col, subCategory: '' }))}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl border-2 transition-all font-sans ${
+                      active ? 'border-green-600 bg-green-600 text-white' : 'border-brand-border text-brand-dark/70 hover:border-green-600'
+                    }`}
                   >
-                    {active && <Check className="w-3 h-3" />}
-                    {cat.name}
+                    {active && <Check className="w-3 h-3 inline mr-1" />}
+                    {col}
                   </button>
                 );
               })}
             </div>
-            {form.categories.length === 0 && (
-              <p className="text-xs text-red-500 mt-1 font-sans">Please select at least one category.</p>
-            )}
+          </div>
+
+          {/* ── Category — depends on selected collection ── */}
+          <div>
+            <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-2 block">Category</label>
+            <div className="flex flex-wrap gap-2">
+              {(subCategoriesByCol[form.collection.toLowerCase()] || []).map(cat => {
+                const active = form.subCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, subCategory: active ? '' : cat }))}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${
+                      active ? 'border-brand-dark bg-brand-dark text-white' : 'border-brand-border text-brand-dark/70 hover:border-brand-dark'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Material selector */}
@@ -215,7 +225,7 @@ const CategoryManager = ({ customCategories, dispatch }) => {
         className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-dark hover:border-green-600 hover:text-green-700 transition-colors whitespace-nowrap"
       >
         <Tag className="w-4 h-4" />
-        Manage Categories
+        Manage Collections
         <span className="ml-1 bg-brand-muted text-brand-dark/70 text-xs font-bold px-2 py-0.5 rounded-full">
           {customCategories.length}
         </span>
@@ -224,7 +234,7 @@ const CategoryManager = ({ customCategories, dispatch }) => {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-brand-border shadow-2xl z-40 p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-serif font-bold text-brand-dark text-sm">Product Categories</h4>
+            <h4 className="font-serif font-bold text-brand-dark text-sm">Product Collections</h4>
             <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-brand-muted">
               <X className="w-4 h-4 text-brand-dark/60" />
             </button>
@@ -236,7 +246,7 @@ const CategoryManager = ({ customCategories, dispatch }) => {
               value={newCatName}
               onChange={e => setNewCat(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
-              placeholder="New category name..."
+              placeholder="New collection name..."
               className="flex-1 border border-brand-border rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-green-600"
             />
             <button
@@ -271,8 +281,101 @@ const CategoryManager = ({ customCategories, dispatch }) => {
             ))}
           </div>
           <p className="text-[10px] text-brand-dark/40 font-sans mt-3 text-center">
-            Categories appear in product form & shop filters
+            Collections appear in product form & shop filters
           </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Sub-Category Manager ──────────────────────────────────────────────────
+const SubCategoryManager = ({ collections, subCategories, dispatch }) => {
+  const [open, setOpen] = useState(false);
+  const [selectedCol, setSelectedCol] = useState(collections[0]?.urlKey || 'male');
+  const [newName, setNewName] = useState('');
+
+  const handleAdd = () => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    dispatch(addSubCategory({ collection: selectedCol, name: trimmed }));
+    setNewName('');
+  };
+
+  const handleRemove = (name) => {
+    if (window.confirm(`Remove category "${name}"?`)) {
+      dispatch(deleteSubCategory({ collection: selectedCol, name }));
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-dark hover:border-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+      >
+        <PlusCircle className="w-4 h-4" />
+        Add Category
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-brand-border shadow-2xl z-40 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-serif font-bold text-brand-dark text-sm">Manage Categories</h4>
+            <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-brand-muted">
+              <X className="w-4 h-4 text-brand-dark/60" />
+            </button>
+          </div>
+
+          {/* Collection Picker */}
+          <div className="mb-4">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-brand-dark/50 mb-1.5 block">Select Collection</label>
+            <div className="flex flex-wrap gap-2">
+              {collections.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCol(c.urlKey)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${selectedCol === c.urlKey ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-brand-dark/70 border-brand-border hover:border-brand-dark'}`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Form */}
+          <div className="flex gap-2 mb-4">
+            <input
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              placeholder="New category name..."
+              className="flex-1 border border-brand-border rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-brand-blue"
+            />
+            <button
+              onClick={handleAdd}
+              disabled={!newName.trim()}
+              className="p-2 rounded-xl text-white disabled:opacity-40 transition-colors bg-brand-dark"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* List */}
+          <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+            <p className="text-[10px] font-bold text-brand-dark/40 uppercase mb-2">Existing in {selectedCol}</p>
+            {(subCategories[selectedCol] || []).map(cat => (
+              <div key={cat} className="flex items-center justify-between px-3 py-2 rounded-xl bg-brand-muted/30 group">
+                <span className="text-sm font-semibold text-brand-dark">{cat}</span>
+                <button
+                  onClick={() => handleRemove(cat)}
+                  className="p-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -281,12 +384,9 @@ const CategoryManager = ({ customCategories, dispatch }) => {
 
 // ── Main AdminProducts page ────────────────────────────────────────────────
 export const AdminProducts = () => {
-  const { products, customCategories } = useSelector(s => s.admin);
+  const { products, customCategories, subCategories } = useSelector(s => s.admin);
   const dispatch = useDispatch();
   const [modal, setModal] = useState(null);
-  const [search, setSearch] = useState('');
-
-  const filtered = products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()));
 
   const handleSave = (data) => {
     if (modal.isNew) dispatch(addProduct(data));
@@ -300,28 +400,22 @@ export const AdminProducts = () => {
 
   return (
     <div className="space-y-5">
-      {/* ── Top bar: search + Manage Categories + Add Product ── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search products..."
-          className="border border-brand-border rounded-xl px-4 py-2.5 text-sm font-sans w-full sm:w-72 focus:outline-none focus:border-green-600"
-        />
+      {/* ── Top bar: Manage Categories + Add Product ── */}
+      <div className="flex items-center justify-end gap-2">
+        {/* ── Inline Category Manager ── */}
+        <CategoryManager customCategories={customCategories} dispatch={dispatch} />
 
-        <div className="flex items-center gap-2 shrink-0">
-          {/* ── Inline Category Manager ── */}
-          <CategoryManager customCategories={customCategories} dispatch={dispatch} />
+        {/* ── Add Category to Collection ── */}
+        <SubCategoryManager collections={customCategories} subCategories={subCategories} dispatch={dispatch} />
 
-          {/* ── Add Product ── */}
-          <button
-            onClick={() => setModal({ data: { ...EMPTY }, isNew: true })}
-            className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
-            style={{ background: '#073b3a' }}
-          >
-            <Plus className="w-4 h-4" /> Add Product
-          </button>
-        </div>
+        {/* ── Add Product ── */}
+        <button
+          onClick={() => setModal({ data: { ...EMPTY }, isNew: true })}
+          className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+          style={{ background: '#073b3a' }}
+        >
+          <Plus className="w-4 h-4" /> Add Product
+        </button>
       </div>
 
       {/* ── Product table ── */}
@@ -329,25 +423,20 @@ export const AdminProducts = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-brand-muted text-xs text-brand-dark/70 uppercase tracking-wider font-sans">
-              <tr>{['Image', 'Name', 'Categories', 'Pricing', 'Materials', 'Colors', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
+              <tr>{['Image', 'Name', 'Collection', 'Category', 'Pricing', 'Materials', 'Colors', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map(p => (
+              {products.map(p => (
                 <tr key={p.id} className="hover:bg-brand-muted transition-colors">
                   <td className="px-4 py-3"><img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-brand-muted" /></td>
-                  <td className="px-4 py-3 font-semibold text-brand-dark max-w-[160px] truncate">{p.name}</td>
+                  <td className="px-4 py-3 font-semibold text-brand-dark max-w-[140px] truncate">{p.name}</td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {/* Support both old `category` string, new `categories` array, and backend objects */}
-                      {(p.categories ?? (p.category ? [p.category] : [])).filter(Boolean).map(cat => {
-                        const catName = typeof cat === 'object' ? (cat.name || 'Uncategorized') : cat;
-                        return (
-                          <span key={catName} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 capitalize whitespace-nowrap">
-                            {catName}
-                          </span>
-                        );
-                      })}
-                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 capitalize whitespace-nowrap">
+                      {p.collection || p.categories?.[0] || p.category || '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-brand-dark/70">{p.subCategory || '—'}</span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-0.5">
@@ -391,9 +480,10 @@ export const AdminProducts = () => {
         <Modal
           data={modal.data}
           isNew={modal.isNew}
-          customCategories={customCategories}
           onClose={() => setModal(null)}
           onSave={handleSave}
+          customCollections={customCategories}
+          subCategoriesByCol={subCategories}
         />
       )}
     </div>

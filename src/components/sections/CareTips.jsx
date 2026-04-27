@@ -1,99 +1,90 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateContent } from '../../features/admin/adminSlice';
+import { EditableText } from '../admin/EditableText';
+import { EditableImage } from '../admin/EditableImage';
+import { ImageIcon } from 'lucide-react';
 
-const dos = [
-  'Measure your pet before ordering',
-  'Use gentle, cold machine wash',
-  'Air dry in shade to preserve color',
-  'Check for accurate size using our size chart',
-  'Store folded in a cotton bag',
-];
+const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&q=80&w=900';
 
-const donts = [
-  "Don't force outfit if it doesn't fit",
-  "Avoid tumble drying — it shrinks fabric",
-  "Don't use bleach or harsh detergents",
-  "Don't leave on unattended sleeping pets",
-  "Avoid direct ironing on print/embellishments",
-];
+export const CareTips = () => {
+  const dispatch   = useDispatch();
+  const content    = useSelector(s => s.admin.content) || {};
+  const isEditMode = useSelector(s => s.editMode.active);
 
-const FADE_UP = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, duration: 0.45, ease: 'easeOut' } }),
-};
+  const overline = content.careTipsOverline || 'Pet Care Guide';
+  const title    = content.careTipsTitle    || "Care Tips from Mom's Desk 🐾";
+  const subtitle = content.careTipsSubtitle || "Follow these simple tips to ensure your fur baby's outfit stays fresh, soft, and beautiful for longer.";
+  const image    = content.careTipsImage    || PLACEHOLDER_IMAGE;
 
-export const CareTips = () => (
-  <section className="py-20 bg-brand-muted">
-    <div className="section-wrap">
-      <div className="text-center mb-14">
-        <p className="brand-overline mb-1.5">Pet Care Guide</p>
-        <h2 className="brand-title">Care Tips from Mom's Desk 🐾</h2>
-        <p className="text-brand-dark/80 mt-3 text-sm font-sans max-w-lg mx-auto">
-          Follow these simple tips to ensure your fur baby's outfit stays fresh, soft, and beautiful for longer.
-        </p>
-      </div>
+  const save = (key, val) => dispatch(updateContent({ [key]: val }));
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Do's */}
+  return (
+    <section className="py-20 bg-brand-muted">
+      <div className="section-wrap">
+
+        {/* Heading */}
+        <div className="text-center mb-14">
+          <EditableText
+            value={overline}
+            onSave={(v) => save('careTipsOverline', v)}
+            as="p"
+            className="brand-overline mb-1.5"
+          />
+          <EditableText
+            value={title}
+            onSave={(v) => save('careTipsTitle', v)}
+            as="h2"
+            className="brand-title"
+          />
+          <EditableText
+            value={subtitle}
+            onSave={(v) => save('careTipsSubtitle', v)}
+            as="p"
+            className="text-brand-dark/80 mt-3 text-sm font-sans max-w-lg mx-auto"
+            multiline
+          />
+        </div>
+
+        {/* Image box */}
         <motion.div
-          initial={{ opacity: 0, x: -24 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="boutique-card p-8"
+          className="relative rounded-3xl overflow-hidden shadow-boutique max-w-4xl mx-auto"
+          style={{ minHeight: '320px' }}
         >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-brand-dark/10 flex items-center justify-center text-xl">✅</div>
-            <h3 className="font-serif text-xl font-bold text-brand-dark">DO's</h3>
-          </div>
-          <ul className="space-y-3">
-            {dos.map((tip, i) => (
-              <motion.li
-                key={tip}
-                variants={FADE_UP}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                className="flex items-start gap-3 text-sm text-brand-dark font-sans"
-              >
-                <span className="mt-0.5 w-5 h-5 rounded-full bg-brand-dark/10 text-brand-dark flex items-center justify-center text-xs font-bold shrink-0">✓</span>
-                {tip}
-              </motion.li>
-            ))}
-          </ul>
+          {image ? (
+            <EditableImage
+              src={image}
+              alt="Care Tips"
+              className="w-full h-full object-cover"
+              onSave={(v) => save('careTipsImage', v)}
+            />
+          ) : (
+            /* Empty state — only shown when no image set yet */
+            <div className="w-full flex flex-col items-center justify-center bg-white/60 border-2 border-dashed border-brand-border rounded-3xl"
+              style={{ minHeight: '320px' }}>
+              <ImageIcon className="w-14 h-14 text-brand-dark/20 mb-4" />
+              <p className="text-brand-dark/40 font-sans text-sm font-semibold">
+                {isEditMode ? 'Click the 📷 button to upload your Dos & Don\'ts image' : 'No image set yet'}
+              </p>
+              {/* In edit mode we still need EditableImage to render the camera button */}
+              {isEditMode && (
+                <EditableImage
+                  src=""
+                  alt="Care Tips"
+                  className="hidden"
+                  onSave={(v) => save('careTipsImage', v)}
+                />
+              )}
+            </div>
+          )}
         </motion.div>
 
-        {/* Don'ts */}
-        <motion.div
-          initial={{ opacity: 0, x: 24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="boutique-card p-8"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-xl">⛔</div>
-            <h3 className="font-serif text-xl font-bold text-brand-blue">DON'Ts</h3>
-          </div>
-          <ul className="space-y-3">
-            {donts.map((tip, i) => (
-              <motion.li
-                key={tip}
-                variants={FADE_UP}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                className="flex items-start gap-3 text-sm text-brand-dark font-sans"
-              >
-                <span className="mt-0.5 w-5 h-5 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-xs font-bold shrink-0">✕</span>
-                {tip}
-              </motion.li>
-            ))}
-          </ul>
-        </motion.div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};

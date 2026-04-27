@@ -189,7 +189,7 @@ const PetProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light pb-20">
+    <div className="min-h-screen  pb-20">
       {/* Header */}
       <div className="bg-white border-b border-brand-border pt-24 sm:pt-32 pb-8 sm:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -370,7 +370,7 @@ const PetProfile = () => {
               </div>
 
               {/* Footer */}
-              <div className="p-5 sm:p-8 border-t border-brand-border bg-brand-light/20 flex gap-3 sm:gap-4 shrink-0">
+              <div className="p-5 sm:p-8 border-t border-brand-border /20 flex gap-3 sm:gap-4 shrink-0">
                 <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 h-12 sm:h-14 rounded-2xl font-bold uppercase tracking-widest text-[11px] border-2 border-brand-border text-brand-dark/60 hover:bg-brand-muted transition-all">
                   Cancel
                 </button>

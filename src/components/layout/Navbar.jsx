@@ -11,92 +11,134 @@ import { PetProfileIcon } from './PetProfileIcon';
 
 const NAV_ITEMS = [
   {
-    label: 'Male', key: 'male',
-    columns: [
-      { heading: 'Daily Wear', links: ['T-Shirts', 'Hoodies', 'Sweaters', 'Jumpsuits'] },
-      { heading: 'Special', links: ['Tuxedos', 'Party Wear', 'Custom Design'] },
+    label: 'Male Design', key: 'male',
+    links: [
+      'Casual', 'Party Wear', 'Festive', 'Tuxedo'
     ],
     featured: {
-      name: 'Baby Boy Classic Raincoat',
-      price: '₹36.00',
+      name: 'Boy\'s Classic Tuxedo Set',
+      price: '₹1,299',
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
-      tag: 'Trending'
+      tag: 'Trending',
     },
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=320&h=200&fit=crop',
+    featured2: {
+      name: 'Festive Party Hoodie',
+      price: '₹899',
+      image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=400&fit=crop',
+      tag: 'New',
+    },
+    featured3: {
+      name: 'Smart Casual Blazer',
+      price: '₹1,599',
+      image: 'https://images.unsplash.com/photo-1503919005314-30d93d07d823?w=400&h=400&fit=crop',
+      tag: 'Sale',
+    },
   },
   {
-    label: 'Female', key: 'female',
-    columns: [
-      { heading: 'Clothing', links: ['Frocks & Dresses', 'Skirts', 'Sweaters'] },
-      { heading: 'Special', links: ['Party Gowns', 'Wedding Outfits', 'Costumes'] },
+    label: 'Female Design', key: 'female',
+    links: [
+      'Casual', 'Designer', 'Festive', 'Party Wear', 'Skirt Top/ Co-ords', 'Lehengas'
     ],
     featured: {
-      name: 'Fuzzy Winter Earmuffs',
-      price: '₹15.00',
+      name: 'Princess Ruffle Frock',
+      price: '₹1,499',
       image: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=400&fit=crop',
-      tag: 'Winter'
+      tag: 'Bestseller',
     },
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=320&h=200&fit=crop',
-  }
+    featured2: {
+      name: 'Festive Designer Gown',
+      price: '₹1,899',
+      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=400&fit=crop',
+      tag: 'Special',
+    },
+    featured3: {
+      name: 'Floral Summer Dress',
+      price: '₹1,199',
+      image: 'https://images.unsplash.com/photo-1605763240000-7e93b172d754?w=400&h=400&fit=crop',
+      tag: 'Trending',
+    },
+  },
+  {
+    label: 'Accessories', key: 'accessories',
+    links: [
+      'Bandana', 'Caps', 'HairClips', 'Ties'
+    ],
+    featured: {
+      name: 'Floral Bandana Trio',
+      price: '₹299',
+      image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400&h=400&fit=crop',
+      tag: 'Popular',
+    },
+    featured2: {
+      name: 'Bow & Clips Gift Set',
+      price: '₹499',
+      image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=400&fit=crop',
+      tag: 'Gift',
+    },
+    featured3: {
+      name: 'Designer Sunglasses',
+      price: '₹599',
+      image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&h=400&fit=crop',
+      tag: 'New',
+    },
+  },
 ];
+
+const FeaturedCard = ({ item: f, collectionKey, onClose }) => (
+  <Link to={`/shop?category=${collectionKey}`} onClick={onClose} className="block group">
+    <div className="relative h-44 xl:h-48 w-full rounded-2xl overflow-hidden mb-3">
+      <img src={f.image} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      <span className="absolute top-3 left-3 bg-white text-brand-dark text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+        {f.tag}
+      </span>
+    </div>
+    <h5 className="font-bold text-brand-dark text-sm leading-tight mb-1">{f.name}</h5>
+    <p className="text-brand-blue text-xs font-bold">{f.price}</p>
+  </Link>
+);
 
 const MegaMenu = ({ item, onClose }) => (
   <motion.div
     initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
     transition={{ duration: 0.2, ease: 'easeOut' }}
-    className="absolute top-full left-0 right-0 bg-[#e8f0fe] border-t border-brand-border z-40 shadow-boutique-hover mt-[1px]"
+    className="absolute top-full left-0 right-0 bg-white border-t border-brand-border z-40 shadow-boutique-hover mt-[1px]"
   >
     <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 md:py-10">
-      <div className="flex w-full justify-between xl:pr-4">
+      <div className="flex w-full gap-10 xl:gap-14 justify-between">
 
-        {/* Left Link Columns */}
-        {item.columns.map(col => (
-          <div key={col.heading} className="w-40 shrink-0">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-brand-blue">{col.heading}</h4>
-            <ul className="space-y-2.5">
-              {col.links.map(link => (
-                <li key={link}>
-                  <Link to={`/shop?category=${item.key}`} onClick={onClose}
-                    className="text-sm text-brand-dark hover:text-brand-blue font-medium transition-colors inline-block">
-                    {link}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        {/* Left: subcategory links list downwards */}
+        <div className="shrink-0 min-w-[280px]">
+          <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-brand-blue">{item.label}</h4>
+          <div className="grid grid-cols-2 gap-x-12 gap-y-4">
+            {item.links.map((sub) => (
+              <Link
+                key={sub}
+                to={`/shop?category=${item.key}&sub=${encodeURIComponent(sub)}`}
+                onClick={onClose}
+                className="text-sm text-brand-dark hover:text-brand-blue font-medium transition-colors w-fit block"
+              >
+                {sub}
+              </Link>
+            ))}
           </div>
-        ))}
+        </div>
 
-        {/* Center Featured Product (Identical Shape to Promo) */}
-        {item.featured && (
-          <div className="hidden lg:block w-60 xl:w-64 shrink-0 group">
+        {/* Right: featured products */}
+        <div className="hidden lg:flex gap-6 xl:gap-8 ml-auto">
+          <div className="w-52 xl:w-60 shrink-0">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-brand-blue">Featured</h4>
-            <Link to={`/shop?category=${item.key}`} onClick={onClose} className="block group">
-              <div className="relative h-44 xl:h-48 w-full rounded-2xl overflow-hidden mb-3">
-                <img src={item.featured.image} alt={item.featured.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <span className="absolute top-3 left-3 bg-white text-brand-dark text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
-                  {item.featured.tag}
-                </span>
-              </div>
-              <h5 className="font-bold text-brand-dark text-sm leading-tight mb-1">{item.featured.name}</h5>
-              <p className="text-brand-blue text-xs font-bold">{item.featured.price}</p>
-            </Link>
+            <FeaturedCard item={item.featured} collectionKey={item.key} onClose={onClose} />
           </div>
-        )}
-
-        {/* Right Promo Box (Identical Shape to Featured) */}
-        <div className="hidden lg:block w-60 xl:w-64 shrink-0">
-          <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-transparent select-none whitespace-nowrap" aria-hidden="true">Collection Spacer</h4>
-          <Link to={`/shop?category=${item.key}`} onClick={onClose} className="block group">
-            <div className="relative h-44 xl:h-48 w-full rounded-2xl overflow-hidden mb-3">
-              <img src={item.image} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent flex items-end p-5">
-                <p className="font-serif font-bold text-white text-lg tracking-wide drop-shadow-md">{item.label} Collection</p>
-              </div>
+          <div className="w-52 xl:w-60 shrink-0">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-brand-blue">Also Love</h4>
+            <FeaturedCard item={item.featured2} collectionKey={item.key} onClose={onClose} />
+          </div>
+          {item.featured3 && (
+            <div className="w-52 xl:w-60 shrink-0 hidden xl:block">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] mb-4 text-brand-blue">Trending</h4>
+              <FeaturedCard item={item.featured3} collectionKey={item.key} onClose={onClose} />
             </div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-brand-dark group-hover:text-brand-blue transition-colors">
-              Shop all {item.label} →
-            </span>
-          </Link>
+          )}
         </div>
 
       </div>
@@ -108,6 +150,30 @@ export const Navbar = () => {
   const dispatch = useDispatch();
   const { cartTotalQuantity } = useSelector(s => s.cart);
   const { isAuthenticated, role, user } = useSelector(s => s.auth);
+  const { products, navbarFeatured, subCategories } = useSelector(s => s.admin);
+
+  const getFeaturedProduct = (id) => {
+    if (!id || !products) return null;
+    const p = products.find(prod => prod.id === id);
+    if (!p) return null;
+    return {
+      name: p.name,
+      price: `₹${(p.sellingPrice || p.price || 0).toLocaleString('en-IN')}`,
+      image: p.images?.[0] || p.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400',
+      tag: 'Featured',
+    };
+  };
+
+  const dynamicNavItems = NAV_ITEMS.map(item => {
+    const ids = navbarFeatured?.[item.key] || [];
+    return {
+      ...item,
+      links: subCategories?.[item.key] || item.links,
+      featured: getFeaturedProduct(ids[0]) || item.featured,
+      featured2: getFeaturedProduct(ids[1]) || item.featured2,
+      featured3: getFeaturedProduct(ids[2]) || item.featured3,
+    };
+  });
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);   // mega menu key
@@ -134,24 +200,24 @@ export const Navbar = () => {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 bg-[#e8f0fe] transition-all duration-300 ${scrolled ? 'shadow-boutique border-b border-brand-border' : 'border-b border-transparent'}`}
+        className={`sticky top-0 z-50 bg-[#e0f4ee] transition-all duration-300 ${scrolled ? 'shadow-boutique border-b border-brand-border' : 'border-b border-transparent'}`}
         onMouseLeave={closeMega}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-[100px] gap-6 lg:gap-10">
+          <div className="flex items-center h-[100px]">
 
             {/* ── Logo ─────────────────────────────── */}
             <Link to="/" className="shrink-0 flex items-center" onClick={closeProfile}>
               <img
-                src="/logo.png"
+                src="/newlogo.png"
                 alt="A'DOREMOM Couture"
-                className="h-20 sm:h-[95px] w-auto object-contain scale-125 sm:scale-[1.35] transform origin-left"
+                className="h-20 sm:h-[90px] w-auto object-contain -ml-8 scale-125 transform"
               />
             </Link>
 
             {/* ── Desktop nav ───────────────────────── */}
             <div className="hidden md:flex items-center h-full gap-0.5 flex-1 justify-center">
-              {NAV_ITEMS.map(item => (
+              {dynamicNavItems.map(item => (
                 <div key={item.key} className="relative h-full flex items-center"
                   onMouseEnter={() => openMega(item.key)}>
                   <button
@@ -168,7 +234,6 @@ export const Navbar = () => {
               ))}
               {[
                 { label: 'New Collections', path: '/shop?category=new-collections' },
-                { label: 'Bandana', path: '/shop?category=bandana' },
                 { label: 'Customization', path: '/customization' },
                 { label: 'Try@Home', path: '/try-at-home' },
               ].map(link => (
@@ -261,7 +326,7 @@ export const Navbar = () => {
           {activeMenu && (
             <div onMouseEnter={keepMega} onMouseLeave={closeMega}>
               <MegaMenu
-                item={NAV_ITEMS.find(i => i.key === activeMenu)}
+                item={dynamicNavItems.find(i => i.key === activeMenu)}
                 onClose={() => setActiveMenu(null)}
               />
             </div>
@@ -273,7 +338,10 @@ export const Navbar = () => {
         mobileMenuOpen={mobileOpen}
         setMobileMenuOpen={setMobileOpen}
         megaMenuData={Object.fromEntries(
-          NAV_ITEMS.map(i => [i.key, { title: i.label, lists: i.columns.map(c => ({ title: c.heading, links: c.links })) }])
+          dynamicNavItems.map(i => [i.key, {
+            title: i.label,
+            lists: [{ title: 'Categories', links: i.links }]
+          }])
         )}
       />
     </>

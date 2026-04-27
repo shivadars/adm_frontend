@@ -67,15 +67,19 @@ const DEFAULT_CONTENT = {
   promoBannerSubtitle: "Share your idea, reference, or dream outfit — and our skilled moms will craft it with the finest fabric.",
   promoBannerImage:    'https://images.unsplash.com/photo-1591160690555-5debfba289f0?auto=format&fit=crop&q=80&w=700',
   whyChooseTitle:      "Why Moms Choose A'DOREMOM",
+  careTipsOverline:    'Pet Care Guide',
+  careTipsTitle:       "Care Tips from Mom's Desk 🐾",
+  careTipsSubtitle:    "Follow these simple tips to ensure your fur baby's outfit stays fresh, soft, and beautiful for longer.",
+  careTipsImage:       '',
 };
 
 // ── Default custom categories (admin can add/remove) ──────────────────────
 export const DEFAULT_CUSTOM_CATEGORIES = [
-  { id: 'cat-1', name: 'Male',            urlKey: 'male' },
-  { id: 'cat-2', name: 'Female',          urlKey: 'female' },
-  { id: 'cat-3', name: 'New Collections', urlKey: 'new-collections' },
-  { id: 'cat-4', name: 'Bandana',         urlKey: 'bandana' },
-  { id: 'cat-5', name: 'Customization',   urlKey: 'customization' },
+  { id: 'cat-1', name: 'Male',            urlKey: 'male',             description: 'Stylish and comfortable outfits designed especially for your male furry baby. From everyday casuals to festive wear, we have it all.' },
+  { id: 'cat-2', name: 'Female',          urlKey: 'female',           description: 'Adorable and elegant fashion crafted for your princess pup. Explore our curated collection of feminine styles made with love.' },
+  { id: 'cat-3', name: 'New Collections', urlKey: 'new-collections',  description: 'Fresh arrivals and season\'s latest designs — be the first to dress your pet in our newest handmade creations.' },
+  { id: 'cat-4', name: 'Bandana',         urlKey: 'bandana',          description: 'Fun, trendy and easy to wear — our handcrafted bandanas are the perfect finishing touch for any pet outfit.' },
+  { id: 'cat-5', name: 'Customization',   urlKey: 'customization',    description: 'Your idea, our craft. Send us your design and we\'ll stitch it into reality — fully personalised pet fashion, made just for you.' },
 ];
 
 // ── Bootstrap thunk: load ALL admin data from dataService at startup ──────
@@ -125,6 +129,11 @@ export const fetchAdminData = createAsyncThunk(
         whyChooseUs:       why,
         enquiries:         enquiries,
         customCategories:  customCategories,
+        navbarFeatured:    {
+          male: [null, null, null],
+          female: [null, null, null],
+          accessories: [null, null, null],
+        },
       };
     } catch (e) {
       return rejectWithValue(e.message);
@@ -154,6 +163,21 @@ const adminSlice = createSlice({
     whyChooseUs:      DEFAULT_WHY,
     enquiries:        [],
     customCategories: DEFAULT_CUSTOM_CATEGORIES,
+    navbarFeatured: {
+      male: [null, null, null],
+      female: [null, null, null],
+      accessories: [null, null, null],
+    },
+    collectionDescriptions: {
+      male:         { _default: 'Stylish and comfortable outfits designed for your male furry baby. From everyday casuals to festive looks, crafted with love.', Casual: 'Everyday comfort wear for your boy pup — soft fabrics and easy fits for walks, playdates, and lazy afternoons.', 'Party Wear': 'Because every good boy deserves to look dapper at parties. Our party wear collection brings the wow factor for special occasions.', Festive: 'Celebrate every festival in style. Our festive collection for male pets features rich fabrics, bright colours, and handcrafted details.', Tuxedo: 'For the most formal of occasions — our tuxedo range makes your male pup the best-dressed guest in the room.' },
+      female:       { _default: 'Adorable and elegant fashion crafted for your princess pup. Explore feminine styles made with love and care.', Casual: 'Everyday chic for your girl pup — breezy, soft, and effortlessly stylish for every day of the week.', Designer: 'Exclusive designer pieces crafted with premium fabrics and intricate detailing — for the pup who deserves the best.', Festive: 'Shine at every celebration in our festive collection — vibrant colours, rich embroidery, and royal silhouettes.', 'Party Wear': 'Glam up your girl for every party with our stunning party wear range — frills, bows, and everything fabulous.', 'Skirt Top/ Co-ords': 'Trendy co-ord sets and skirt tops that are perfect for styled shoots, outings, and special moments.', Lehengas: 'Mini bridal vibes for your princess — handcrafted lehengas with intricate work, made for the most special days.' },
+      accessories:  { _default: 'The perfect finishing touch for any pet outfit. Shop our curated range of handcrafted pet accessories.', Bandana: 'Fun, trendy and easy to wear — our handcrafted bandanas come in dozens of prints to match any outfit.', Caps: 'Keep your pup cool and cute with our range of pet caps — sun protection meets street style.', HairClips: 'Pretty clips and bows to add a little extra charm to your girl pup\'s everyday look.', Ties: 'A sharp tie makes every boy pup look like a true gentleman — available in silks, cottons, and printed patterns.' },
+    },
+    subCategories: {
+      male:         ['Casual', 'Party Wear', 'Festive', 'Tuxedo'],
+      female:       ['Casual', 'Designer', 'Festive', 'Party Wear', 'Skirt Top/ Co-ords', 'Lehengas'],
+      accessories:  ['Bandana', 'Caps', 'HairClips', 'Ties'],
+    },
     status:           'idle',
   },
   reducers: {
@@ -194,6 +218,17 @@ const adminSlice = createSlice({
       const idx = state.categories.findIndex((c) => c.id === payload.id);
       if (idx !== -1) state.categories[idx] = { ...state.categories[idx], ...payload };
     },
+    addCategoryBanner: (state, { payload }) => {
+      state.categories.push(payload);
+    },
+    deleteCategoryBanner: (state, { payload: id }) => {
+      state.categories = state.categories.filter(c => c.id !== id);
+    },
+
+    // ── Navbar Featured Products ──────────────────────────────────────────
+    updateNavbarFeatured: (state, { payload }) => {
+      state.navbarFeatured = { ...state.navbarFeatured, ...payload };
+    },
 
     // ── Custom Categories (admin-managed list for product dropdown) ───────
     addCategory: (state, { payload }) => {
@@ -218,11 +253,43 @@ const adminSlice = createSlice({
     deleteCategory: (state, { payload: id }) => {
       state.customCategories = state.customCategories.filter((c) => c.id !== id);
     },
+    updateCustomCategory: (state, { payload }) => {
+      const idx = state.customCategories.findIndex(c => c.id === payload.id);
+      if (idx !== -1) state.customCategories[idx] = { ...state.customCategories[idx], ...payload };
+    },
+    updateCollectionDescription: (state, { payload: { collection, subKey, description } }) => {
+      if (!state.collectionDescriptions) state.collectionDescriptions = {};
+      if (!state.collectionDescriptions[collection]) state.collectionDescriptions[collection] = {};
+      state.collectionDescriptions[collection][subKey] = description;
+    },
+    addSubCategory: (state, { payload: { collection, name } }) => {
+      if (!state.subCategories) state.subCategories = {};
+      if (!state.subCategories[collection]) state.subCategories[collection] = [];
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      if (!state.subCategories[collection].includes(trimmed)) {
+        state.subCategories[collection].push(trimmed);
+      }
+    },
+    deleteSubCategory: (state, { payload: { collection, name } }) => {
+      if (state.subCategories && state.subCategories[collection]) {
+        state.subCategories[collection] = state.subCategories[collection].filter(n => n !== name);
+      }
+    },
 
-    // ── Why Choose Us ────────────────────────────────────────────────────
+    // ── Why Choose Us ────────────────────────────────────
     updateWhyReason: (state, { payload }) => {
       const idx = state.whyChooseUs.findIndex((r) => r.id === payload.id);
       if (idx !== -1) state.whyChooseUs[idx] = { ...state.whyChooseUs[idx], ...payload };
+    },
+    addWhyReason: (state, { payload }) => {
+      state.whyChooseUs.push({ id: `w-${Date.now()}`, emoji: '✨', title: 'New Reason', desc: 'Describe why customers love A\'DOREMOM.', ...payload });
+    },
+    deleteWhyReason: (state, { payload: id }) => {
+      state.whyChooseUs = state.whyChooseUs.filter(r => r.id !== id);
+    },
+    updateWhyTitle: (state, { payload }) => {
+      if (state.content) state.content.whyChooseTitle = payload;
     },
 
     // ── Reviews ──────────────────────────────────────────────────────────
@@ -283,6 +350,12 @@ const adminSlice = createSlice({
         state.whyChooseUs      = payload.whyChooseUs;
         state.enquiries        = payload.enquiries;
         state.customCategories = payload.customCategories;
+        if (payload.subCategories) {
+          state.subCategories = payload.subCategories;
+        }
+        if (payload.navbarFeatured) {
+          state.navbarFeatured = payload.navbarFeatured;
+        }
       })
       .addCase(fetchAdminData.rejected, (state) => {
         state.status = 'failed';
@@ -294,9 +367,11 @@ const adminSlice = createSlice({
 export const {
   addProduct, editProduct, deleteProduct,
   updateHeroSlide, deleteHeroSlide,
-  updateCategory,
-  addCategory, deleteCategory,
-  updateWhyReason,
+  updateCategory, addCategoryBanner, deleteCategoryBanner,
+  updateNavbarFeatured,
+  addCategory, deleteCategory, updateCustomCategory, updateCollectionDescription,
+  addSubCategory, deleteSubCategory,
+  updateWhyReason, addWhyReason, deleteWhyReason, updateWhyTitle,
   addReview, editReview, deleteReview, toggleFeaturedReview,
   addEnquiry, updateEnquiryStatus, deleteEnquiry,
   updateContent,

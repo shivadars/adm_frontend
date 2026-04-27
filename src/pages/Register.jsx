@@ -11,7 +11,7 @@ const Field = ({ label, name, type = 'text', placeholder, value, onChange }) => 
     <label className="block text-xs font-bold text-brand-dark uppercase tracking-wider mb-1.5 font-sans">{label}</label>
     <input
       type={type} required value={value} onChange={onChange} placeholder={placeholder}
-      className="w-full border border-brand-border bg-[#e8f0fe] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+      className="w-full border border-brand-border bg-[#e0f4ee] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
     />
   </div>
 );
@@ -44,7 +44,7 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen  flex items-center justify-center px-4 py-16 relative overflow-hidden">
       <PawBackground />
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-md relative z-10">
         <div className="text-center mb-4 -mt-10 pointer-events-none">

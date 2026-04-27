@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateHeroSlide, deleteHeroSlide, updateCategory } from '../features/admin/adminSlice';
-import { Plus, Trash2, Check, X, ImagePlay, Grid3X3 } from 'lucide-react';
+import { updateHeroSlide, deleteHeroSlide, updateCategory, addCategoryBanner, deleteCategoryBanner, updateNavbarFeatured } from '../features/admin/adminSlice';
+import { Plus, Trash2, Check, X, ImagePlay, Grid3X3, Star } from 'lucide-react';
 import { ImageInput } from './ImageInput';
 
 // ─── Hero slide edit card ───────────────────────────────────────────────────────
@@ -80,10 +80,11 @@ const SlideCard = ({ slide, onUpdate, onDelete }) => {
 };
 
 // ─── Category photo card ────────────────────────────────────────────────────────
-const CategoryCard = ({ cat, onUpdate }) => {
+const CategoryCard = ({ cat, onUpdate, onDelete }) => {
   const [editing, setEditing] = useState(false);
-  const [image, setImage] = useState(cat.image);
-  const save = () => { onUpdate({ ...cat, image }); setEditing(false); };
+  const [form, setForm] = useState({ ...cat });
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+  const save = () => { onUpdate(form); setEditing(false); };
 
   return (
     <div className="bg-white rounded-2xl border border-brand-border shadow-sm overflow-hidden">
@@ -97,31 +98,48 @@ const CategoryCard = ({ cat, onUpdate }) => {
 
       {editing ? (
         <div className="p-4 space-y-3">
+          {[
+            ['Category Name', 'name'],
+            ['URL Key (e.g. /shop?category=male)', 'urlKey'],
+          ].map(([label, key]) => (
+            <div key={key}>
+              <label className="text-[10px] font-bold text-brand-dark/50 uppercase tracking-widest font-sans">{label}</label>
+              <input value={form[key] || ''} onChange={set(key)}
+                className="w-full mt-0.5 border border-brand-border rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-green-600" />
+            </div>
+          ))}
+
           <ImageInput
             label="Category Photo — Upload or Paste URL"
-            value={image}
-            onChange={setImage}
+            value={form.image}
+            onChange={(src) => setForm(f => ({ ...f, image: src }))}
             height="h-24"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button onClick={save}
               className="flex items-center gap-1.5 text-xs font-semibold text-white px-4 py-2 rounded-xl flex-1 justify-center"
               style={{ background: '#073b3a' }}>
-              <Check className="w-3.5 h-3.5" /> Save
+              <Check className="w-3.5 h-3.5" /> Save Changes
             </button>
-            <button onClick={() => { setImage(cat.image); setEditing(false); }}
-              className="text-xs font-semibold text-brand-dark/80 px-3 py-2 rounded-xl border border-brand-border hover:bg-brand-muted">
-              Cancel
+            <button onClick={() => { setForm({ ...cat }); setEditing(false); }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand-dark/80 px-3 py-2 rounded-xl border border-brand-border hover:bg-brand-muted">
+              <X className="w-3.5 h-3.5" /> Cancel
             </button>
           </div>
         </div>
       ) : (
-        <div className="px-4 py-3 flex items-center justify-between">
-          <p className="text-xs text-brand-dark/50 font-sans truncate">/{cat.urlKey}</p>
-          <button onClick={() => setEditing(true)}
-            className="text-xs font-semibold text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors">
-            Change Photo
-          </button>
+        <div className="px-4 py-3 flex items-center justify-between gap-2">
+          <p className="text-xs text-brand-dark/50 font-sans truncate">{cat.urlKey}</p>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={() => setEditing(true)}
+              className="text-xs font-semibold text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors">
+              Edit
+            </button>
+            <button onClick={() => onDelete(cat.id)}
+              className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -130,17 +148,26 @@ const CategoryCard = ({ cat, onUpdate }) => {
 
 // ─── Main page ──────────────────────────────────────────────────────────────────
 export const AdminBanners = () => {
-  const { heroSlides, categories } = useSelector(s => s.admin);
+  const { heroSlides, categories, products, navbarFeatured } = useSelector(s => s.admin);
   const dispatch = useDispatch();
   const [tab, setTab] = useState('hero');
   const [adding, setAdding] = useState(false);
   const [newSlide, setNewSlide] = useState({ badge: '', title: '', subtitle: '', image: '', cta: 'Shop Now', link: '/shop' });
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState({ name: '', urlKey: '/shop?category=', image: '' });
 
   const handleAdd = () => {
     if (!newSlide.image) return;
     dispatch(updateHeroSlide({ id: Date.now(), ...newSlide }));
     setAdding(false);
     setNewSlide({ badge: '', title: '', subtitle: '', image: '', cta: 'Shop Now', link: '/shop' });
+  };
+
+  const handleAddCategory = () => {
+    if (!newCategory.name || !newCategory.image) return;
+    dispatch(addCategoryBanner({ id: `c-${Date.now()}`, ...newCategory }));
+    setAddingCategory(false);
+    setNewCategory({ name: '', urlKey: '/shop?category=', image: '' });
   };
 
   return (
@@ -150,6 +177,7 @@ export const AdminBanners = () => {
         {[
           { key: 'hero',       icon: ImagePlay, label: 'Hero Carousel Slides' },
           { key: 'categories', icon: Grid3X3,   label: 'Category Images'      },
+          { key: 'navbar',     icon: Star,      label: 'Navbar Featured'      },
         ].map(({ key, icon: Icon, label }) => (
           <button key={key} onClick={() => setTab(key)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold font-sans border transition-colors"
@@ -189,19 +217,109 @@ export const AdminBanners = () => {
       {/* ── Category images ── */}
       {tab === 'categories' && (
         <>
-          <p className="text-sm text-brand-dark/70 font-sans">
-            Change photos for each category. You can upload from your computer or paste an image URL.
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm text-brand-dark/70 font-sans">
+              Change photos and details for each category. Changes apply to the homepage instantly.
+            </p>
+            <button onClick={() => setAddingCategory(true)}
+              className="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2.5 rounded-xl whitespace-nowrap"
+              style={{ background: '#073b3a' }}>
+              <Plus className="w-4 h-4" /> Add Category
+            </button>
+          </div>
+
+          {addingCategory && (
+            <div className="/50 border border-brand-border rounded-2xl p-6">
+              <h3 className="text-sm font-bold font-serif mb-4 text-brand-dark">Add New Category Banner</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  ['Category Name', 'name'],
+                  ['URL Key (e.g. /shop?category=male)', 'urlKey'],
+                ].map(([label, key]) => (
+                  <div key={key}>
+                    <label className="text-[10px] font-bold text-brand-dark/50 uppercase tracking-widest font-sans">{label}</label>
+                    <input value={newCategory[key]} onChange={e => setNewCategory({ ...newCategory, [key]: e.target.value })}
+                      className="w-full mt-0.5 border border-brand-border rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-green-600" />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <ImageInput
+                  label="Category Photo — Upload or Paste URL"
+                  value={newCategory.image}
+                  onChange={(src) => setNewCategory({ ...newCategory, image: src })}
+                  height="h-28"
+                />
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={handleAddCategory} className="bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-colors" style={{ background: '#073b3a' }}>
+                  Save Category
+                </button>
+                <button onClick={() => setAddingCategory(false)} className="text-brand-dark/70 font-semibold text-sm hover:text-brand-dark transition-colors px-2">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {categories.map(cat => (
               <CategoryCard
                 key={cat.id}
                 cat={cat}
                 onUpdate={(data) => dispatch(updateCategory(data))}
+                onDelete={(id) => { if (window.confirm('Delete this category?')) dispatch(deleteCategoryBanner(id)); }}
               />
             ))}
           </div>
         </>
+      )}
+
+      {/* ── Navbar Featured Products ── */}
+      {tab === 'navbar' && (
+        <div className="space-y-8">
+          <p className="text-sm text-brand-dark/70 font-sans">
+            Select up to 3 featured products to display in the mega menu for each collection.
+          </p>
+          
+          {['male', 'female', 'accessories'].map(collection => {
+            const collectionProducts = products.filter(p => {
+              const pCat = (p.collection || p.category || p.categories?.[0] || '');
+              // "accessories" products might be mapped to "accessories" or "Accessories" etc.
+              return pCat.toLowerCase() === collection.toLowerCase();
+            });
+            const title = collection === 'male' ? 'Male Design' : collection === 'female' ? 'Female Design' : 'Accessories';
+            
+            return (
+              <div key={collection} className="bg-white p-5 rounded-2xl border border-brand-border">
+                <h4 className="font-bold font-serif text-lg mb-4 text-brand-dark capitalize">{title}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {[0, 1, 2].map(idx => (
+                    <div key={idx}>
+                      <label className="text-[10px] font-bold text-brand-dark/50 uppercase tracking-widest font-sans mb-1.5 block">
+                        {idx === 0 ? 'Featured (Left)' : idx === 1 ? 'Also Love (Middle)' : 'Trending (Right)'}
+                      </label>
+                      <select
+                        value={navbarFeatured?.[collection]?.[idx] || ''}
+                        onChange={(e) => {
+                          const updated = [...(navbarFeatured?.[collection] || [null, null, null])];
+                          updated[idx] = e.target.value || null;
+                          dispatch(updateNavbarFeatured({ [collection]: updated }));
+                        }}
+                        className="w-full border border-brand-border rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-green-600 bg-white truncate"
+                      >
+                        <option value="">-- None --</option>
+                        {collectionProducts.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* ── Add slide modal ── */}

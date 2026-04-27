@@ -30,7 +30,7 @@ const InputField = ({ label, value, onChange, type = 'text', placeholder, requir
     </label>
     <input
       type={type} value={value} onChange={onChange} placeholder={placeholder} required={required}
-      className="w-full border border-brand-border bg-brand-light rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+      className="w-full border border-brand-border  rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
     />
   </div>
 );
@@ -192,7 +192,7 @@ export const Checkout = () => {
 
   // ── Success screen ─────────────────────────────────────────────────────
   if (step === 4) return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4">
+    <div className="min-h-screen  flex items-center justify-center px-4">
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="boutique-card p-8 sm:p-12 text-center max-w-md w-full">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-12 h-12 text-green-500" />
@@ -211,7 +211,7 @@ export const Checkout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-brand-light">
+    <div className="min-h-screen ">
       {/* Header */}
       <div className="bg-white border-b border-brand-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-6">

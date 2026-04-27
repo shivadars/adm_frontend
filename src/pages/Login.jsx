@@ -24,9 +24,11 @@ export const Login = () => {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate(params.get('next') || '/', { replace: true });
+      const isAdmin = role === 'admin' || role === 'superadmin';
+      const defaultPath = isAdmin ? '/admin' : '/';
+      navigate(params.get('next') || defaultPath, { replace: true });
     }
-  }, [isAuthenticated, navigate, params]);
+  }, [isAuthenticated, role, navigate, params]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +36,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen  flex items-center justify-center px-4 py-16 relative overflow-hidden">
       <PawBackground />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -72,7 +74,7 @@ export const Login = () => {
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 placeholder="you@example.com"
-                className="w-full border border-brand-border bg-[#e8f0fe] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+                className="w-full border border-brand-border bg-[#e0f4ee] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
               />
             </div>
             <div>
@@ -84,7 +86,7 @@ export const Login = () => {
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="••••••••"
-                  className="w-full border border-brand-border bg-[#e8f0fe] rounded-xl px-4 py-3 pr-11 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+                  className="w-full border border-brand-border bg-[#e0f4ee] rounded-xl px-4 py-3 pr-11 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
                 />
                 <button type="button" onClick={() => setShow(s => !s)}
                   className="absolute right-3 top-3 text-brand-dark/50 hover:text-brand-dark/80">

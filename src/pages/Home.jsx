@@ -80,7 +80,35 @@ const CategoryGrid = () => {
   const categories = useSelector(s => s.admin.categories);
   return (
     <section className="section-wrap py-16">
-      <SectionHead overline="Collections" title="What Are You Shopping For?" />
+      {/* Heading block — styled like the logo */}
+      <div className="text-center mb-12">
+        <h2
+          style={{
+            fontFamily:  "'Playfair Display', serif",
+            fontSize:    'clamp(2rem, 5vw, 3.5rem)',
+            fontWeight:  900,
+            color:       '#073b3a',
+            letterSpacing: '0.04em',
+            lineHeight:  1.1,
+            marginBottom: '0.6rem',
+          }}
+        >
+          WELCOME TO A'DOREMOM
+        </h2>
+        <p
+          style={{
+            fontFamily:   "'Playfair Display', serif",
+            fontSize:     'clamp(0.75rem, 1.8vw, 1rem)',
+            fontWeight:   500,
+            color:        '#073b3a',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Designed with mother's touch, made for your fur baby's comfort.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {categories.map((cat, i) => (
           <motion.div
@@ -102,15 +130,13 @@ const CategoryGrid = () => {
               <span className="sr-only">Shop {cat.name}</span>
             </Link>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a2540] via-[#0a2540]/20 to-transparent opacity-80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#073b3a] via-[#073b3a]/20 to-transparent opacity-80 pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between pointer-events-none z-20">
               <div className="relative text-left">
-                <p className="text-[#e8f0fe] text-[10px] uppercase tracking-widest font-bold font-sans mb-1">A'DOREMOM</p>
+                <p className="text-[#e0f4ee] text-[10px] uppercase tracking-widest font-bold font-sans mb-1">A'DOREMOM</p>
                 <h3 className="font-serif font-bold text-white text-2xl drop-shadow-md">{cat.name}</h3>
               </div>
-              <div
-                className="flex items-center gap-1.5 bg-[#e8f0fe] text-[#0a2540] text-xs font-bold px-4 py-2 rounded-full transition-transform group-hover:-translate-y-1 shadow-md"
-              >
+              <div className="flex items-center gap-1.5 bg-[#e0f4ee] text-[#073b3a] text-xs font-bold px-4 py-2 rounded-full transition-transform group-hover:-translate-y-1 shadow-md">
                 Shop <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -120,6 +146,7 @@ const CategoryGrid = () => {
     </section>
   );
 };
+
 
 // ─── Promo banner (editable) ───────────────────────────────────────────────────
 const CustomBanner = () => {
@@ -390,18 +417,6 @@ export const Home = () => {
         <CustomBanner />
       </div>
 
-      <div className="relative mt-6 sm:mt-0">
-        <Sticker className="hidden xl:block" side="right" out={660} top="150px" rotate={12} scale={1.1} opacity={0.12} isCloud />
-        <Sticker className="hidden md:block" side="left" out={630} top="80px" rotate={-10} scale={1.2} opacity={0.15} />
-        <Sticker className="hidden 2xl:block" side="right" out={740} top="260px" rotate={15} scale={1.8} opacity={0.08} blur={0.5} />
-        <ProductGrid
-          overline="Just arrived"
-          title="New Arrivals"
-          products={newArrivalProducts}
-          loading={loading}
-          link="/shop?category=new-collections"
-        />
-      </div>
 
       <CareTips />
       

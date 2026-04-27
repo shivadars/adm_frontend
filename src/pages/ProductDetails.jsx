@@ -231,7 +231,7 @@ export const ProductDetails = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-brand-light">
+    <div className="min-h-screen ">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center text-[10px] sm:text-xs text-brand-dark/70 font-sans gap-1.5 uppercase tracking-wide">
@@ -454,7 +454,7 @@ export const ProductDetails = () => {
                   <div className="flex-1 flex gap-3">
                     <button
                       onClick={handleAddToCart}
-                      className={`flex-1 h-14 rounded-2xl font-bold uppercase tracking-[0.1em] text-[13px] shadow-lg transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 ${added ? 'bg-[#16a34a] text-white shadow-green-600/20' : 'bg-[#0a2540] hover:bg-[#1d4ed8] text-white shadow-[#0a2540]/20'}`}
+                      className={`flex-1 h-14 rounded-2xl font-bold uppercase tracking-[0.1em] text-[13px] shadow-lg transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 ${added ? 'bg-[#16a34a] text-white shadow-green-600/20' : 'bg-[#073b3a] hover:bg-[#1d4ed8] text-white shadow-[#073b3a]/20'}`}
                     >
                       {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
                       {added ? 'Added to Bag' : 'Add to Bag'}
@@ -462,16 +462,16 @@ export const ProductDetails = () => {
 
                     <button
                       onClick={() => setWishlisted(w => !w)}
-                      className="w-14 h-14 rounded-2xl border-2 border-[#bfdbfe] bg-white flex items-center justify-center transition-all hover:border-[#2563eb] shadow-sm hover:shadow-md group shrink-0"
+                      className="w-14 h-14 rounded-2xl border-2 border-[#b8e3d6] bg-white flex items-center justify-center transition-all hover:border-[#073b3a] shadow-sm hover:shadow-md group shrink-0"
                     >
-                      <Heart className={`w-5 h-5 transition-colors ${wishlisted ? 'fill-[#ff6b81] text-[#ff6b81]' : 'text-[#0a2540]/40 group-hover:text-[#ff6b81]'}`} />
+                      <Heart className={`w-5 h-5 transition-colors ${wishlisted ? 'fill-[#ff6b81] text-[#ff6b81]' : 'text-[#073b3a]/40 group-hover:text-[#ff6b81]'}`} />
                     </button>
                   </div>
                 </div>
                 
                 <button
                   onClick={(e) => handleAddToCart(e, true)}
-                  className="w-full h-14 rounded-2xl bg-[#2563eb] font-bold uppercase tracking-[0.1em] text-[13px] text-white hover:opacity-90 transition-all shadow-lg active:scale-[0.98] transform"
+                  className="w-full h-14 rounded-2xl bg-[#073b3a] font-bold uppercase tracking-[0.1em] text-[13px] text-white hover:opacity-90 transition-all shadow-lg active:scale-[0.98] transform"
                 >
                   Buy It Now
                 </button>

@@ -132,7 +132,7 @@ export const ImageInput = ({ value, onChange, label, height = 'h-32' }) => {
             onChange={(e) => setUrlVal(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleUrlSave()}
             placeholder="https://example.com/image.jpg"
-            className="flex-1 border border-brand-border rounded-xl px-3 py-2.5 text-xs font-sans focus:outline-none focus:border-green-600 bg-brand-light"
+            className="flex-1 border border-brand-border rounded-xl px-3 py-2.5 text-xs font-sans focus:outline-none focus:border-green-600 "
           />
           <button
             type="button"

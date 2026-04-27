@@ -218,7 +218,7 @@ export const ProfilePanel = ({ open, onClose }) => {
           animate="visible"
           exit="exit"
           transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-          className="absolute right-0 top-full mt-2 w-72 rounded-2xl overflow-hidden z-50 bg-[#e8f0fe] border border-brand-border shadow-boutique-hover"
+          className="absolute right-0 top-full mt-2 w-72 rounded-2xl overflow-hidden z-50 bg-white border border-brand-border shadow-boutique-hover"
         >
           {!isAuthenticated && (
             <GuestPanel onClose={onClose} />

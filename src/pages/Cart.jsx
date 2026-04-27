@@ -10,7 +10,7 @@ export const Cart = () => {
   const { cartItems } = useSelector(state => state.cart);
 
   return (
-    <div className="bg-brand-light min-h-screen">
+    <div className=" min-h-screen">
       {/* Page header */}
       <div className="bg-white border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

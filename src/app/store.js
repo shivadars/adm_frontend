@@ -66,10 +66,14 @@ listenerMiddleware.startListening({
     
     // If the API returned a real ID, we need to update our local state
     // so that future Edits or Deletes use the correct Database ID.
-    if (result.success && result.data?.id) {
+    // If the API returned a real product, we need to update our local state
+    // with the real database ID and the real image URL.
+    if (result.success && result.data) {
       listenerApi.dispatch(editProduct({ 
-        id: action.payload.id, // The temporary 'p-...' ID
-        newId: result.data.id  // The real database integer ID
+        id: action.payload.id,       // The temporary 'p-...' ID
+        newId: result.data.id,       // The real database integer ID
+        image: result.data.image,    // The real URL from the backend
+        ...result.data               // Any other fields calculated by backend
       }));
     }
   },
@@ -248,7 +252,22 @@ export const store = configureStore({
     pets:     petReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().prepend(listenerMiddleware.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore raw File objects in these actions
+        ignoredActions: [
+          'admin/addProduct', 
+          'admin/editProduct', 
+          'pets/add/pending',
+          'pets/add/fulfilled',
+          'pets/update/pending',
+          'pets/update/fulfilled'
+        ],
+        // Also ignore the 'image' and 'photo' paths in the state if they contain File objects
+        ignoredActionPaths: ['payload.image', 'payload.photo', 'payload.updates.photo'],
+        ignoredPaths: ['admin.products', 'pets.items'],
+      },
+    }).prepend(listenerMiddleware.middleware),
 });
 
 // ── App Bootstrap ─────────────────────────────────────────────────────────

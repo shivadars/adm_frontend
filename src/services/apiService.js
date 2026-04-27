@@ -63,8 +63,14 @@ const mapPetToBackend = (petOrUpdates) => {
   const data = { ...petOrUpdates };
   
   // Base field mapping
-  if (data.photo) data.image = data.photo;
-  if (data.instagram) data.instagram_username = data.instagram;
+  if (data.photo) {
+    data.image = data.photo;
+    delete data.photo;
+  }
+  if (data.instagram) {
+    data.instagram_username = data.instagram;
+    delete data.instagram;
+  }
   
   // Flatten measurements
   if (data.measurements) {
@@ -84,6 +90,36 @@ const mapPetToBackend = (petOrUpdates) => {
   if (data.topToToeHeight !== undefined) { data.top_to_toe_height = data.topToToeHeight; delete data.topToToeHeight; }
 
   return data;
+};
+
+/**
+ * Converts a plain object to FormData if it contains a File object.
+ * Also handles nested arrays/objects by stringifying them as Laravel expects.
+ */
+const toFormData = (data, method = 'POST') => {
+  const formData = new FormData();
+  
+  // Laravel PUT/PATCH over Multipart/FormData requires _method spoofing
+  if (method !== 'POST') {
+    formData.append('_method', method);
+  }
+
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else if (Array.isArray(value)) {
+      // For arrays (tags, colors, etc.), send as comma-separated string to match Laravel's stringifyArrays helper
+      formData.append(key, value.join(', '));
+    } else if (typeof value === 'object' && value !== null) {
+      formData.append(key, JSON.stringify(value));
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, value);
+    }
+  });
+  
+  return formData;
 };
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -188,18 +224,27 @@ export const getProducts = async (params = {}) => {
   }
 };
 
-export const addProduct = async (product) => {
+export const addProduct = async (productData) => {
   try {
-    const response = await axiosInstance.post(ENDPOINTS.PRODUCTS, product);
+    const hasFile = Object.values(productData).some(v => v instanceof File);
+    const body = hasFile ? toFormData(productData) : productData;
+    const response = await axiosInstance.post(ENDPOINTS.PRODUCTS, body);
     return unwrap(response);
   } catch (e) {
     return handleError(e);
   }
 };
 
-export const updateProduct = async (id, data) => {
+export const updateProduct = async (id, productData) => {
   try {
-    const response = await axiosInstance.put(ENDPOINTS.PRODUCT(id), data);
+    const hasFile = Object.values(productData).some(v => v instanceof File);
+    // If has file, use POST with _method spoofing because Laravel PUT + FormData is buggy
+    const body = hasFile ? toFormData(productData, 'PUT') : productData;
+    const response = await axiosInstance({
+      method: hasFile ? 'post' : 'put',
+      url: ENDPOINTS.PRODUCT(id),
+      data: body
+    });
     return unwrap(response);
   } catch (e) {
     return handleError(e);
@@ -340,7 +385,9 @@ export const getAllPets = async () => {
 export const addPet = async (userId, pet) => {
   try {
     const data = mapPetToBackend(pet);
-    const response = await axiosInstance.post(ENDPOINTS.PETS(userId), data);
+    const hasFile = data.image instanceof File;
+    const body = hasFile ? toFormData(data) : data;
+    const response = await axiosInstance.post(ENDPOINTS.PETS(userId), body);
     const result = unwrap(response);
     if (result.success) {
       result.data = mapPetFromBackend(result.data);
@@ -354,7 +401,13 @@ export const addPet = async (userId, pet) => {
 export const updatePet = async (userId, petId, updates) => {
   try {
     const data = mapPetToBackend(updates);
-    const response = await axiosInstance.put(ENDPOINTS.PET(petId), data);
+    const hasFile = data.image instanceof File;
+    const body = hasFile ? toFormData(data, 'PUT') : data;
+    const response = await axiosInstance({
+      method: hasFile ? 'post' : 'put',
+      url: ENDPOINTS.PET(petId),
+      data: body
+    });
     const result = unwrap(response);
     if (result.success) {
       result.data = mapPetFromBackend(result.data);

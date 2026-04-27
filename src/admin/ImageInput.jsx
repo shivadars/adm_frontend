@@ -3,23 +3,23 @@ import { Upload, Link2, X, Image as ImageIcon } from 'lucide-react';
 
 /**
  * ImageInput — reusable component for picking an image either by:
- *   • Uploading a file from the computer (converted to base64)
+ *   • Uploading a file from the computer (File object)
  *   • Pasting an image URL
  *
  * Props:
- *   value    — current image src (base64 or URL)
+ *   value    — current image src (File object, blob URL, or URL string)
  *   onChange — called with the new src string
  *   label    — optional field label
  *   height   — optional preview height class (default 'h-32')
  */
 export const ImageInput = ({ value, onChange, label, height = 'h-32' }) => {
   const [tab, setTab] = useState('upload'); // 'upload' | 'url'
-  const [urlVal, setUrlVal] = useState(value?.startsWith('http') ? value : '');
+  const [urlVal, setUrlVal] = useState(typeof value === 'string' && value.startsWith('http') ? value : '');
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
 
-  // Convert file → base64 and call onChange
+  // Pass raw file up to parent, and show local preview
   const handleFile = (file) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -31,9 +31,7 @@ export const ImageInput = ({ value, onChange, label, height = 'h-32' }) => {
       return;
     }
     setError('');
-    const reader = new FileReader();
-    reader.onload = (e) => onChange(e.target.result);
-    reader.readAsDataURL(file);
+    onChange(file); // Pass the raw File object
   };
 
   const handleDrop = (e) => {
@@ -54,6 +52,22 @@ export const ImageInput = ({ value, onChange, label, height = 'h-32' }) => {
     setError('');
     if (fileRef.current) fileRef.current.value = '';
   };
+
+  const previewSrc = React.useMemo(() => {
+    if (value instanceof File) {
+      return URL.createObjectURL(value);
+    }
+    return value;
+  }, [value]);
+
+  // Clean up blob URLs to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      if (previewSrc && previewSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(previewSrc);
+      }
+    };
+  }, [previewSrc]);
 
   return (
     <div>
@@ -140,7 +154,7 @@ export const ImageInput = ({ value, onChange, label, height = 'h-32' }) => {
       {value && (
         <div className={`relative mt-3 ${height} rounded-xl overflow-hidden border border-brand-border bg-brand-muted group`}>
           <img
-            src={value}
+            src={previewSrc}
             alt="Preview"
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; setError('Could not load this image. Please check the URL or try another file.'); }}

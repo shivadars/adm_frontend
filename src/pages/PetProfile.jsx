@@ -145,6 +145,15 @@ const PetProfile = () => {
   const [formData,     setFormData]     = useState({});
   const [preview,      setPreview]      = useState(null);
 
+  // Clean up object URLs to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const handleOpenAdd = () => {
     setFormData({});
     setPreview(null);
@@ -172,12 +181,10 @@ const PetProfile = () => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        setFormData(prev => ({ ...prev, photo: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      // Set the raw file object in state for the API
+      setFormData(prev => ({ ...prev, photo: file }));
+      // Use createObjectURL for local preview
+      setPreview(URL.createObjectURL(file));
     }
   };
 

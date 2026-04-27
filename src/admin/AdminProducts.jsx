@@ -7,10 +7,11 @@ import { ImageInput } from './ImageInput';
 
 const EMPTY = {
   name: '', mrp: '', sellingPrice: '', categories: ['Male'], image: '',
-  tags: '', brand: "A'DOREMOM", description: '',
+  tags: '', description: '',
   rating: 4.5, reviews: 0,
   materials: [],
   colors: [],
+  stock: 10,
 };
 
 // ── Chip multi-select (materials, colors, categories) ──────────────────────
@@ -25,9 +26,8 @@ const ChipSelect = ({ label, options, selected, onToggle, renderChip, colorMode 
             key={opt.id ?? opt}
             type="button"
             onClick={() => onToggle(opt.id ?? opt)}
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${
-              active ? 'border-brand-dark bg-brand-dark text-white' : 'border-brand-border bg-white text-brand-dark/70 hover:border-brand-dark'
-            }`}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${active ? 'border-brand-dark bg-brand-dark text-white' : 'border-brand-border bg-white text-brand-dark/70 hover:border-brand-dark'
+              }`}
           >
             {renderChip ? renderChip(opt, active) : (opt.name ?? opt)}
           </button>
@@ -42,9 +42,9 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
   const [form, setForm] = useState({
     ...EMPTY,
     ...data,
-    tags:       data?.tags       ? (Array.isArray(data.tags)       ? data.tags.join(', ')       : data.tags)       : EMPTY.tags,
-    materials:  data?.materials  ? [...data.materials]  : [],
-    colors:     data?.colors     ? [...data.colors]     : [],
+    tags: data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
+    materials: data?.materials ? [...data.materials] : [],
+    colors: data?.colors ? [...data.colors] : [],
     // Migrate legacy single `category` string → `categories` array
     categories: data?.categories
       ? [...data.categories]
@@ -62,12 +62,12 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
 
   const handleSave = () => onSave({
     ...form,
-    mrp:          Number(form.mrp),
+    mrp: Number(form.mrp),
     sellingPrice: Number(form.sellingPrice),
-    price:        Number(form.sellingPrice),
-    tags:         String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
+    price: Number(form.sellingPrice),
+    tags: String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
     // Keep first category as primary `category` for backwards compat
-    category:     form.categories[0] || 'Male',
+    category: form.categories[0] || 'Male',
   });
 
   return (
@@ -81,9 +81,9 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
         <div className="overflow-y-auto px-6 py-4 space-y-4 flex-1">
           {/* Basic text fields */}
           {[
-            ['Product Name',           'name',        'text'],
-            ['Description',            'description', 'text'],
-            ['Tags (comma-separated)',  'tags',        'text'],
+            ['Product Name', 'name', 'text'],
+            ['Description', 'description', 'text'],
+            ['Tags (comma-separated)', 'tags', 'text'],
           ].map(([label, key, type]) => (
             <div key={key}>
               <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">{label}</label>
@@ -92,14 +92,18 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
           ))}
 
           {/* Pricing */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">MRP (₹) <span className="text-brand-dark/40 normal-case tracking-normal font-normal">(crossed-out)</span></label>
-              <input type="number" value={form.mrp} onChange={set('mrp')} placeholder="e.g. 1599" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">MRP (₹)</label>
+              <input type="number" value={form.mrp} onChange={set('mrp')} placeholder="1599" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Selling Price (₹) <span className="text-green-600 normal-case tracking-normal font-normal">(highlighted)</span></label>
-              <input type="number" value={form.sellingPrice} onChange={set('sellingPrice')} placeholder="e.g. 1299" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Selling (₹)</label>
+              <input type="number" value={form.sellingPrice} onChange={set('sellingPrice')} placeholder="1299" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Stock</label>
+              <input type="number" value={form.stock} onChange={set('stock')} placeholder="10" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
             </div>
           </div>
           {form.mrp && form.sellingPrice && Number(form.mrp) > Number(form.sellingPrice) && (
@@ -130,11 +134,10 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
                           : [...f.categories, cat.name],
                       }));
                     }}
-                    className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${
-                      active
-                        ? 'border-green-600 bg-green-600 text-white'
-                        : 'border-brand-border bg-white text-brand-dark/70 hover:border-green-600'
-                    }`}
+                    className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${active
+                      ? 'border-green-600 bg-green-600 text-white'
+                      : 'border-brand-border bg-white text-brand-dark/70 hover:border-green-600'
+                      }`}
                   >
                     {active && <Check className="w-3 h-3" />}
                     {cat.name}
@@ -195,7 +198,7 @@ const Modal = ({ data, onClose, onSave, isNew, customCategories }) => {
 
 // ── Inline Category Manager ────────────────────────────────────────────────
 const CategoryManager = ({ customCategories, dispatch }) => {
-  const [open, setOpen]         = useState(false);
+  const [open, setOpen] = useState(false);
   const [newCatName, setNewCat] = useState('');
 
   const handleAdd = () => {
@@ -280,14 +283,14 @@ const CategoryManager = ({ customCategories, dispatch }) => {
 export const AdminProducts = () => {
   const { products, customCategories } = useSelector(s => s.admin);
   const dispatch = useDispatch();
-  const [modal,  setModal]  = useState(null);
+  const [modal, setModal] = useState(null);
   const [search, setSearch] = useState('');
 
   const filtered = products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()));
 
   const handleSave = (data) => {
     if (modal.isNew) dispatch(addProduct(data));
-    else             dispatch(editProduct({ id: modal.data.id, ...data }));
+    else dispatch(editProduct({ id: modal.data.id, ...data }));
     setModal(null);
   };
 
@@ -326,7 +329,7 @@ export const AdminProducts = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-brand-muted text-xs text-brand-dark/70 uppercase tracking-wider font-sans">
-              <tr>{['Image','Name','Categories','Pricing','Materials','Colors','Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
+              <tr>{['Image', 'Name', 'Categories', 'Pricing', 'Materials', 'Colors', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map(p => (
@@ -352,23 +355,23 @@ export const AdminProducts = () => {
                       {p.mrp && p.mrp > (p.sellingPrice ?? p.price) && (
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-brand-dark/40 line-through">₹{p.mrp.toLocaleString('en-IN')}</span>
-                          <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{Math.round(((p.mrp-(p.sellingPrice??p.price))/p.mrp)*100)}% off</span>
+                          <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{Math.round(((p.mrp - (p.sellingPrice ?? p.price)) / p.mrp) * 100)}% off</span>
                         </div>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     {p.materials?.length > 0
-                      ? <span className="text-xs text-brand-dark/70">{p.materials.map(id => DEFAULT_FABRICS.find(f=>f.id===id)?.name).filter(Boolean).join(', ')}</span>
+                      ? <span className="text-xs text-brand-dark/70">{p.materials.map(id => DEFAULT_FABRICS.find(f => f.id === id)?.name).filter(Boolean).join(', ')}</span>
                       : <span className="text-xs text-brand-dark/30">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      {p.colors?.slice(0,5).map(id => {
-                        const c = DEFAULT_COLORS.find(c=>c.id===id);
+                      {p.colors?.slice(0, 5).map(id => {
+                        const c = DEFAULT_COLORS.find(c => c.id === id);
                         return c ? <span key={id} title={c.name} className="w-4 h-4 rounded-full border border-gray-200 inline-block" style={{ background: c.hex }} /> : null;
                       })}
-                      {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length-5}</span>}
+                      {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length - 5}</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3">

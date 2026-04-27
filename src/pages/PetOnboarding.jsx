@@ -27,6 +27,15 @@ const PetOnboarding = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
+  
+  // Clean up object URLs to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -35,24 +44,23 @@ const PetOnboarding = () => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        handleInputChange('photo', reader.result);
-      };
-      reader.readAsDataURL(file);
+      setPreview(URL.createObjectURL(file));
+      handleInputChange('photo', file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    setTimeout(() => {
-      dispatch(addPet({ userId: user?.id, pet: formData }));
-      setLoading(false);
+    try {
+      await dispatch(addPet({ userId: user?.id, pet: formData })).unwrap();
       navigate('/');
-    }, 1500);
+    } catch (err) {
+      console.error("Failed to add pet:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

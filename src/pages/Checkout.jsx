@@ -12,7 +12,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { placeOrder } from '../features/orders/ordersSlice';
-import { clearCart }  from '../features/cart/cartSlice';
+import { clearCart } from '../features/cart/cartSlice';
 import { updatePetMeasurements } from '../features/pets/petSlice';
 import { saveAddress } from '../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
@@ -47,11 +47,10 @@ const Steps = ({ current }) => {
       {steps.map((s, i) => (
         <React.Fragment key={s.n}>
           <div className="flex items-center gap-2">
-            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans shrink-0 transition-all ${
-              current > s.n ? 'bg-green-500 text-white' :
-              current === s.n ? 'bg-brand-dark text-white' :
-              'bg-brand-muted text-brand-dark/40'
-            }`}>
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans shrink-0 transition-all ${current > s.n ? 'bg-green-500 text-white' :
+                current === s.n ? 'bg-brand-dark text-white' :
+                  'bg-brand-muted text-brand-dark/40'
+              }`}>
               {current > s.n ? <Check className="w-3.5 h-3.5" /> : s.n}
             </div>
             <span className={`text-xs font-semibold font-sans hidden sm:block ${current === s.n ? 'text-brand-dark' : 'text-brand-dark/40'}`}>
@@ -69,39 +68,39 @@ const Steps = ({ current }) => {
 
 // ── Checkout ──────────────────────────────────────────────────────────────
 export const Checkout = () => {
-  const { user }                      = useSelector(s => s.auth);
+  const { user } = useSelector(s => s.auth);
   const { cartItems, cartTotalAmount } = useSelector(s => s.cart);
-  const pets                          = useSelector(s => s.pets.userPets[user?.id] || []);
-  const dispatch                      = useDispatch();
-  const navigate                      = useNavigate();
+  const pets = useSelector(s => s.pets.userPets[user?.id] || []);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Saved addresses from user profile (array of address objects)
   const savedAddresses = user?.savedAddresses || [];
 
-  const [step,       setStep]       = useState(1);
-  const [placing,    setPlacing]    = useState(false);
-  const [sizeGuide,  setSizeGuide]  = useState(false);
+  const [step, setStep] = useState(1);
+  const [placing, setPlacing] = useState(false);
+  const [sizeGuide, setSizeGuide] = useState(false);
 
   // Step 1 — Pet & Size
   const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id || '');
-  const [measurements,  setMeasurements]  = useState({ neckLength: '', chestLength: '', backLength: '', topToToeHeight: '', size: '' });
-  const [editingSize,   setEditingSize]   = useState(false);
+  const [measurements, setMeasurements] = useState({ neckLength: '', chestLength: '', backLength: '', topToToeHeight: '', size: '' });
+  const [editingSize, setEditingSize] = useState(false);
 
   // Step 2 — Address (auto-fill from most recent saved address)
   const [address, setAddress] = useState({
-    name:    user?.name    || '',
-    line1:   savedAddresses[0]?.line1   || user?.address || '',
-    city:    savedAddresses[0]?.city    || '',
+    name: user?.name || '',
+    line1: savedAddresses[0]?.line1 || user?.address || '',
+    city: savedAddresses[0]?.city || '',
     pincode: savedAddresses[0]?.pincode || '',
-    phone:   savedAddresses[0]?.phone   || user?.phone   || '',
+    phone: savedAddresses[0]?.phone || user?.phone || '',
   });
 
   // Step 3 — Payment
   const [payMethod, setPayMethod] = useState('cod');
 
   const selectedPet = pets.find(p => p.id === selectedPetId);
-  const shipping    = cartTotalAmount >= 999 ? 0 : 79;
-  const total       = cartTotalAmount + shipping;
+  const shipping = cartTotalAmount >= 999 ? 0 : 79;
+  const total = cartTotalAmount + shipping;
 
   // Auto-fill measurements when pet changes
   useEffect(() => {
@@ -143,15 +142,15 @@ export const Checkout = () => {
     setPlacing(true);
     await new Promise(r => setTimeout(r, 800));
     dispatch(placeOrder({
-      userId:    user.id,
-      userName:  user.name,
-      items:     cartItems,
+      userId: user.id,
+      userName: user.name,
+      items: cartItems,
       address,
       payMethod,
       total,
-      petId:     selectedPetId,
-      petName:   selectedPet?.name,
-      petSize:   measurements.size,
+      petId: selectedPetId,
+      petName: selectedPet?.name,
+      petSize: measurements.size,
     }));
     dispatch(clearCart());
     setStep(4);
@@ -264,11 +263,10 @@ export const Checkout = () => {
                               <button
                                 key={pet.id}
                                 onClick={() => setSelectedPetId(pet.id)}
-                                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                                  selectedPetId === pet.id
+                                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selectedPetId === pet.id
                                     ? 'border-brand-dark bg-brand-dark/5'
                                     : 'border-brand-border hover:border-brand-dark/40'
-                                }`}
+                                  }`}
                               >
                                 {pet.photo
                                   ? <img src={pet.photo} alt={pet.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
@@ -348,11 +346,10 @@ export const Checkout = () => {
                                         key={sz}
                                         type="button"
                                         onClick={() => setMeasurements(m => ({ ...m, size: sz }))}
-                                        className={`min-w-[48px] h-10 rounded-xl font-bold text-sm font-sans border-2 transition-all ${
-                                          measurements.size === sz
+                                        className={`min-w-[48px] h-10 rounded-xl font-bold text-sm font-sans border-2 transition-all ${measurements.size === sz
                                             ? 'border-brand-dark bg-brand-dark text-white shadow-sm'
                                             : 'border-brand-border text-brand-dark/70 hover:border-brand-dark/60'
-                                        }`}
+                                          }`}
                                       >
                                         {sz}
                                       </button>
@@ -406,11 +403,10 @@ export const Checkout = () => {
                                 key={i}
                                 type="button"
                                 onClick={() => setAddress({ ...a })}
-                                className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
-                                  isSelected
+                                className={`w-full text-left p-3 rounded-xl border-2 transition-all ${isSelected
                                     ? 'border-brand-dark bg-brand-dark/5'
                                     : 'border-brand-border hover:border-brand-dark/30'
-                                }`}
+                                  }`}
                               >
                                 <p className="text-sm font-bold text-brand-dark font-sans truncate">
                                   {a.name && <span className="mr-1">{a.name} —</span>}

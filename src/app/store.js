@@ -178,9 +178,9 @@ listenerMiddleware.startListening({
 // ── Pets: persist measurements when updated ───────────────────────────
 listenerMiddleware.startListening({
   actionCreator: updatePetMeasurements,
-  effect: async (action, listenerApi) => {
-    const state = listenerApi.getState();
-    await dataService.savePets(state.pets.userPets);
+  effect: async (action) => {
+    const { userId, petId, measurements } = action.payload;
+    await dataService.updatePet(userId, petId, { measurements });
   },
 });
 

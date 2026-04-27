@@ -40,6 +40,52 @@ const handleError = (e) => {
   return err(message);
 };
 
+// ── Pet Mapping Helpers ──────────────────────────────────────────────────────
+const mapPetFromBackend = (pet) => {
+  if (!pet) return pet;
+  return {
+    ...pet,
+    // Map base fields if needed, but ensure they don't clash
+    photo: pet.image,
+    instagram: pet.instagram_username,
+    measurements: {
+      size: pet.size,
+      neckLength: pet.neck_length,
+      chestLength: pet.chest_length,
+      backLength: pet.back_length,
+      topToToeHeight: pet.top_to_toe_height,
+    }
+  };
+};
+
+const mapPetToBackend = (petOrUpdates) => {
+  if (!petOrUpdates) return petOrUpdates;
+  const data = { ...petOrUpdates };
+  
+  // Base field mapping
+  if (data.photo) data.image = data.photo;
+  if (data.instagram) data.instagram_username = data.instagram;
+  
+  // Flatten measurements
+  if (data.measurements) {
+    const m = data.measurements;
+    if (m.size !== undefined) data.size = m.size;
+    if (m.neckLength !== undefined) data.neck_length = m.neckLength;
+    if (m.chestLength !== undefined) data.chest_length = m.chestLength;
+    if (m.backLength !== undefined) data.back_length = m.backLength;
+    if (m.topToToeHeight !== undefined) data.top_to_toe_height = m.topToToeHeight;
+    delete data.measurements;
+  }
+  
+  // Individual field mapping (in case they are passed at top level)
+  if (data.neckLength !== undefined) { data.neck_length = data.neckLength; delete data.neckLength; }
+  if (data.chestLength !== undefined) { data.chest_length = data.chestLength; delete data.chestLength; }
+  if (data.backLength !== undefined) { data.back_length = data.backLength; delete data.backLength; }
+  if (data.topToToeHeight !== undefined) { data.top_to_toe_height = data.topToToeHeight; delete data.topToToeHeight; }
+
+  return data;
+};
+
 // ── Auth ─────────────────────────────────────────────────────────────────────
 export const login = async ({ email, password }) => {
   try {
@@ -135,7 +181,7 @@ export const updateProfile = async (id, data) => {
 // ── Products ─────────────────────────────────────────────────────────────────
 export const getProducts = async (params = {}) => {
   try {
-    const response = await axiosInstance.get(ENDPOINTS.PRODUCTS, { params });
+    const response = await axiosInstance.get(ENDPOINTS.PUBLIC_PRODUCTS, { params });
     return unwrap(response);
   } catch (e) {
     return handleError(e);
@@ -230,7 +276,11 @@ export const updateOrderStatus = async (orderId, status) => {
 export const getPets = async (userId) => {
   try {
     const response = await axiosInstance.get(ENDPOINTS.PETS(userId));
-    return unwrap(response);
+    const result = unwrap(response);
+    if (result.success && Array.isArray(result.data)) {
+      result.data = result.data.map(mapPetFromBackend);
+    }
+    return result;
   } catch (e) {
     return handleError(e);
   }
@@ -240,7 +290,20 @@ export const getAllPets = async () => {
   try {
     // Admin-level endpoint to get all pets
     const response = await axiosInstance.get('/pets');
-    return unwrap(response);
+    const result = unwrap(response);
+    if (result.success) {
+      if (Array.isArray(result.data)) {
+        result.data = result.data.map(mapPetFromBackend);
+      } else if (typeof result.data === 'object') {
+        // Map pets in { userId: [pets] } object
+        Object.keys(result.data).forEach(uid => {
+          if (Array.isArray(result.data[uid])) {
+            result.data[uid] = result.data[uid].map(mapPetFromBackend);
+          }
+        });
+      }
+    }
+    return result;
   } catch (e) {
     return handleError(e);
   }
@@ -248,14 +311,13 @@ export const getAllPets = async () => {
 
 export const addPet = async (userId, pet) => {
   try {
-    // Map frontend fields to backend names
-    const data = {
-      ...pet,
-      image: pet.photo,
-      instagram_username: pet.instagram
-    };
+    const data = mapPetToBackend(pet);
     const response = await axiosInstance.post(ENDPOINTS.PETS(userId), data);
-    return unwrap(response);
+    const result = unwrap(response);
+    if (result.success) {
+      result.data = mapPetFromBackend(result.data);
+    }
+    return result;
   } catch (e) {
     return handleError(e);
   }
@@ -263,15 +325,13 @@ export const addPet = async (userId, pet) => {
 
 export const updatePet = async (userId, petId, updates) => {
   try {
-    // Map frontend fields to backend names and flatten measurements
-    const data = {
-      ...updates,
-      image: updates.photo || updates.image,
-      instagram_username: updates.instagram || updates.instagram_username,
-      ...(updates.measurements || {})
-    };
+    const data = mapPetToBackend(updates);
     const response = await axiosInstance.put(ENDPOINTS.PET(petId), data);
-    return unwrap(response);
+    const result = unwrap(response);
+    if (result.success) {
+      result.data = mapPetFromBackend(result.data);
+    }
+    return result;
   } catch (e) {
     return handleError(e);
   }
@@ -344,6 +404,7 @@ const apiService = {
   addPet,
   updatePet,
   deletePet,
+  savePets: async () => ok(null), // Compatibility no-op
   // Admin CMS
   getAdminData,
   getAdminDashboard,

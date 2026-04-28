@@ -17,6 +17,15 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
+export const fetchAdminOrders = createAsyncThunk(
+  'orders/fetchAdminAll',
+  async (_, { rejectWithValue }) => {
+    const result = await dataService.getAdminOrders();
+    if (!result.success) return rejectWithValue(result.error);
+    return result.data;
+  }
+);
+
 export const placeOrderAsync = createAsyncThunk(
   'orders/place',
   async (orderData, { rejectWithValue }) => {
@@ -30,6 +39,15 @@ export const updateOrderStatusAsync = createAsyncThunk(
   'orders/updateStatus',
   async ({ orderId, status }, { rejectWithValue }) => {
     const result = await dataService.updateOrderStatus(orderId, status);
+    if (!result.success) return rejectWithValue(result.error);
+    return result.data;
+  }
+);
+
+export const updateOrderStatusAdmin = createAsyncThunk(
+  'orders/updateStatusAdmin',
+  async ({ orderId, status }, { rejectWithValue }) => {
+    const result = await dataService.updateOrderStatusAdmin(orderId, status);
     if (!result.success) return rejectWithValue(result.error);
     return result.data;
   }
@@ -57,6 +75,18 @@ const ordersSlice = createSlice({
       .addCase(fetchOrders.rejected, (state, { payload }) => {
         state.status = 'failed';
         state.error  = payload || 'Failed to load orders.';
+      })
+      // fetchAdminOrders
+      .addCase(fetchAdminOrders.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAdminOrders.fulfilled, (state, { payload }) => {
+        state.status = 'succeeded';
+        state.orders = payload;
+      })
+      .addCase(fetchAdminOrders.rejected, (state, { payload }) => {
+        state.status = 'failed';
+        state.error  = payload || 'Failed to load admin orders.';
       });
 
     // placeOrderAsync
@@ -72,7 +102,14 @@ const ordersSlice = createSlice({
     builder
       .addCase(updateOrderStatusAsync.fulfilled, (state, { payload }) => {
         const o = state.orders.find((o) => o.id === payload.id);
-        if (o) o.status = payload.status;
+        if (o) o.order_status = payload.order_status;
+      });
+
+    // updateOrderStatusAdmin
+    builder
+      .addCase(updateOrderStatusAdmin.fulfilled, (state, { payload }) => {
+        const o = state.orders.find((o) => o.id === payload.id);
+        if (o) o.order_status = payload.order_status;
       });
   },
 });

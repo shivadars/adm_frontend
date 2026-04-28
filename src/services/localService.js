@@ -320,6 +320,14 @@ export const updateOrderStatus = async (orderId, status) => {
   }
 };
 
+export const updateOrderStatusAdmin = async (orderId, status) => {
+  return updateOrderStatus(orderId, status);
+};
+
+export const getAdminOrders = async () => {
+  return getOrders();
+};
+
 // ── Pets ─────────────────────────────────────────────────────────────────────
 export const getPets = async (userId) => {
   try {
@@ -447,6 +455,8 @@ const localService = {
   getOrders,
   placeOrder,
   updateOrderStatus,
+  updateOrderStatusAdmin,
+  getAdminOrders,
   // Pets
   getPets,
   getAllPets,

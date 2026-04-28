@@ -23,6 +23,8 @@ export const ENDPOINTS = {
   // ── Orders ────────────────────────────────────────────────────────────────
   ORDERS:      '/orders',
   ORDER:       (id) => `/orders/${id}`,
+  SUPERADMIN_ORDERS: '/superadmin/orders',
+  SUPERADMIN_ORDER: (id) => `/superadmin/orders/${id}`,
 
   // ── Pets ──────────────────────────────────────────────────────────────────
   PETS:        (userId) => `/pets`,

@@ -335,10 +335,27 @@ export const placeOrder = async (orderData) => {
     return handleError(e);
   }
 };
+export const getAdminOrders = async () => {
+  try {
+    const response = await axiosInstance.get(ENDPOINTS.SUPERADMIN_ORDERS);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
 
 export const updateOrderStatus = async (orderId, status) => {
   try {
     const response = await axiosInstance.put(ENDPOINTS.ORDER(orderId), { status });
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const updateOrderStatusAdmin = async (orderId, status) => {
+  try {
+    const response = await axiosInstance.put(ENDPOINTS.SUPERADMIN_ORDER(orderId), { order_status: status });
     return unwrap(response);
   } catch (e) {
     return handleError(e);
@@ -480,8 +497,10 @@ const apiService = {
   clearCart,
   // Orders
   getOrders,
+  getAdminOrders,
   placeOrder,
   updateOrderStatus,
+  updateOrderStatusAdmin,
   // Pets
   getPets,
   getAllPets,

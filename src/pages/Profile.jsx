@@ -15,7 +15,8 @@ export const Profile = () => {
   const [form,    setForm]    = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
   const [saved,   setSaved]   = useState(false);
 
-  const myOrders = orders.filter(o => o.userId === user?.id);
+  // No need to filter by userId anymore as the API already scopes to current user
+  const myOrders = orders;
 
   // Refresh orders on mount
   React.useEffect(() => { dispatch(fetchOrders()); }, [dispatch]);
@@ -31,10 +32,12 @@ export const Profile = () => {
   };
 
   const STATUS_COLORS = {
-    Pending:   'bg-amber-100 text-amber-700',
-    Shipped:   'bg-blue-100 text-blue-700',
-    Delivered: 'bg-green-100 text-green-700',
-    Returned:  'bg-red-100 text-red-700',
+    placed:     'bg-amber-100 text-amber-700',
+    confirmed:  'bg-blue-100 text-blue-700',
+    processing: 'bg-indigo-100 text-indigo-700',
+    shipped:    'bg-purple-100 text-purple-700',
+    delivered:  'bg-green-100 text-green-700',
+    cancelled:  'bg-red-100 text-red-700',
   };
 
   return (
@@ -123,15 +126,19 @@ export const Profile = () => {
                 {myOrders.map(order => (
                   <div key={order.id} className="px-6 py-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono text-xs text-brand-dark/70">{order.id}</span>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_COLORS[order.status] || 'bg-brand-muted text-brand-dark/80'}`}>
-                        {order.status}
+                      <span className="font-mono text-xs text-brand-dark/70">{order.order_number}</span>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${STATUS_COLORS[order.order_status] || 'bg-brand-muted text-brand-dark/80'}`}>
+                        {order.order_status}
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-brand-dark font-sans">{order.items?.length} item(s)</p>
+                    <p className="text-sm font-semibold text-brand-dark font-sans">
+                      {order.order_items?.length || 0} item(s)
+                    </p>
                     <div className="flex justify-between items-center mt-1">
-                      <p className="text-xs text-brand-dark/50 font-sans">{new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-                      <p className="font-bold text-brand-dark text-sm">₹{order.total?.toFixed(2)}</p>
+                      <p className="text-xs text-brand-dark/50 font-sans">
+                        {order.placed_at ? new Date(order.placed_at).toLocaleDateString('en-IN') : '—'}
+                      </p>
+                      <p className="font-bold text-brand-dark text-sm">₹{Number(order.total_amount).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}

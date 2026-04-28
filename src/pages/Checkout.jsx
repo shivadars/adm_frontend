@@ -48,8 +48,8 @@ const Steps = ({ current }) => {
         <React.Fragment key={s.n}>
           <div className="flex items-center gap-2">
             <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans shrink-0 transition-all ${current > s.n ? 'bg-green-500 text-white' :
-                current === s.n ? 'bg-brand-dark text-white' :
-                  'bg-brand-muted text-brand-dark/40'
+              current === s.n ? 'bg-brand-dark text-white' :
+                'bg-brand-muted text-brand-dark/40'
               }`}>
               {current > s.n ? <Check className="w-3.5 h-3.5" /> : s.n}
             </div>
@@ -264,8 +264,8 @@ export const Checkout = () => {
                                 key={pet.id}
                                 onClick={() => setSelectedPetId(pet.id)}
                                 className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${selectedPetId === pet.id
-                                    ? 'border-brand-dark bg-brand-dark/5'
-                                    : 'border-brand-border hover:border-brand-dark/40'
+                                  ? 'border-brand-dark bg-brand-dark/5'
+                                  : 'border-brand-border hover:border-brand-dark/40'
                                   }`}
                               >
                                 {pet.photo
@@ -347,8 +347,8 @@ export const Checkout = () => {
                                         type="button"
                                         onClick={() => setMeasurements(m => ({ ...m, size: sz }))}
                                         className={`min-w-[48px] h-10 rounded-xl font-bold text-sm font-sans border-2 transition-all ${measurements.size === sz
-                                            ? 'border-brand-dark bg-brand-dark text-white shadow-sm'
-                                            : 'border-brand-border text-brand-dark/70 hover:border-brand-dark/60'
+                                          ? 'border-brand-dark bg-brand-dark text-white shadow-sm'
+                                          : 'border-brand-border text-brand-dark/70 hover:border-brand-dark/60'
                                           }`}
                                       >
                                         {sz}
@@ -404,8 +404,8 @@ export const Checkout = () => {
                                 type="button"
                                 onClick={() => setAddress({ ...a })}
                                 className={`w-full text-left p-3 rounded-xl border-2 transition-all ${isSelected
-                                    ? 'border-brand-dark bg-brand-dark/5'
-                                    : 'border-brand-border hover:border-brand-dark/30'
+                                  ? 'border-brand-dark bg-brand-dark/5'
+                                  : 'border-brand-border hover:border-brand-dark/30'
                                   }`}
                               >
                                 <p className="text-sm font-bold text-brand-dark font-sans truncate">

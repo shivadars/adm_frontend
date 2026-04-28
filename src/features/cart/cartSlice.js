@@ -46,7 +46,7 @@ const cartSlice = createSlice({
     addToCart(state, action) {
       const { product, quantity, size } = action.payload;
       const existingIndex = state.cartItems.findIndex(
-        (item) => item.id === product.id && item.size === size
+        (item) => String(item.id) === String(product.id) && item.size === size
       );
       if (existingIndex >= 0) {
         state.cartItems[existingIndex].cartQty += quantity;
@@ -58,13 +58,11 @@ const cartSlice = createSlice({
 
     removeFromCart(state, action) {
       const { id, size } = action.payload;
-      const existing = state.cartItems.find((item) => item.id === id && item.size === size);
-      if (existing) {
-        state.cartItems = state.cartItems.filter(
-          (item) => !(item.id === id && item.size === size)
-        );
-        recalcTotals(state);
-      }
+      // Use loose matching or string conversion to handle potential string/number mismatch from DB
+      state.cartItems = state.cartItems.filter(
+        (item) => !(String(item.id) === String(id) && item.size === size)
+      );
+      recalcTotals(state);
     },
 
     // Kept for backwards compatibility — now recalc happens automatically
@@ -79,10 +77,21 @@ const cartSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(hydrateCart.fulfilled, (state, { payload }) => {
-      state.cartItems = payload;
-      recalcTotals(state);
-    });
+    builder
+      // Load cart from DB
+      .addCase(hydrateCart.fulfilled, (state, { payload }) => {
+        state.cartItems = payload || [];
+        recalcTotals(state);
+      })
+      // RESET CART on logout — critical for multi-user security
+      .addMatcher(
+        (action) => action.type === 'auth/logout/fulfilled',
+        (state) => {
+          state.cartItems = [];
+          state.cartTotalQuantity = 0;
+          state.cartTotalAmount = 0;
+        }
+      );
   },
 });
 

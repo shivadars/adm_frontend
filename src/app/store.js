@@ -34,6 +34,8 @@ import {
   updateContent,
 } from '../features/admin/adminSlice';
 
+import { loginUser, logoutUser, registerUser } from '../features/auth/authSlice';
+
 import { resetProductStatus } from '../features/products/productSlice';
 
 import {
@@ -223,12 +225,14 @@ listenerMiddleware.startListening({
 
 // ── Auth: fetch data after login ────────────────────────────────────
 listenerMiddleware.startListening({
-  matcher: (action) => action.type === 'auth/login/fulfilled' || action.type === 'auth/register/fulfilled',
+  matcher: isAnyOf(loginUser.fulfilled, registerUser.fulfilled),
   effect: async (action, listenerApi) => {
     const { role, user } = listenerApi.getState().auth;
     
-    // Always fetch pets and orders after login
+    // Always fetch orders and HYDRATE CART after login
     listenerApi.dispatch(fetchOrders());
+    listenerApi.dispatch(hydrateCart());
+    
     if (user?.id) {
       listenerApi.dispatch(fetchUserPets(user.id));
     }
@@ -237,6 +241,19 @@ listenerMiddleware.startListening({
     if (role === 'admin' || role === 'superadmin') {
       listenerApi.dispatch(fetchAdminData());
     }
+  },
+});
+
+// ── Auth: clear data after logout ────────────────────────────────────
+listenerMiddleware.startListening({
+  actionCreator: logoutUser.fulfilled,
+  effect: async (action, listenerApi) => {
+    // Safety sync: save any last-second cart changes before wiping state
+    const state = listenerApi.getState();
+    if (state.cart.cartItems.length >= 0) {
+      await dataService.saveCart(state.cart.cartItems);
+    }
+    listenerApi.dispatch(clearCart());
   },
 });
 

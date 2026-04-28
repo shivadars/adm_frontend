@@ -27,7 +27,8 @@ import {
   addProduct, editProduct, deleteProduct,
   updateHeroSlide, deleteHeroSlide,
   updateCategory,
-  addCategory, deleteCategory,
+  addCategory, deleteCategory, updateCustomCategory,
+  addSubCategory, deleteSubCategory,
   updateWhyReason,
   addReview, editReview, deleteReview, toggleFeaturedReview,
   addEnquiry, updateEnquiryStatus, deleteEnquiry,
@@ -136,12 +137,30 @@ listenerMiddleware.startListening({
   },
 });
 
-// ── Admin: persist reviews ────────────────────────────────────────────────
+// ── Admin: persist reviews (legacy/sync fallback) ─────────────────────────
 listenerMiddleware.startListening({
   matcher: isAnyOf(addReview, editReview, deleteReview, toggleFeaturedReview),
   effect: async (action, listenerApi) => {
     const state = listenerApi.getState();
     await dataService.setAdminData('reviews', state.admin.reviews);
+  },
+});
+
+// ── Admin: persist custom collections (customCategories) ──────────────────
+listenerMiddleware.startListening({
+  matcher: isAnyOf(addCategory, deleteCategory, updateCustomCategory),
+  effect: async (action, listenerApi) => {
+    const state = listenerApi.getState();
+    await dataService.setAdminData('customCategories', state.admin.customCategories);
+  },
+});
+
+// ── Admin: persist sub-categories (mapping) ───────────────────────────────
+listenerMiddleware.startListening({
+  matcher: isAnyOf(addSubCategory, deleteSubCategory),
+  effect: async (action, listenerApi) => {
+    const state = listenerApi.getState();
+    await dataService.setAdminData('subCategories', state.admin.subCategories);
   },
 });
 

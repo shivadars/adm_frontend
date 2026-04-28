@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addProduct, editProduct, deleteProduct, addCategory, deleteCategory, addSubCategory, deleteSubCategory } from '../features/admin/adminSlice';
+import {
+  addProduct, editProduct, deleteProduct,
+  addCategory, deleteCategory,
+  addSubCategory, deleteSubCategory,
+  fetchAdminData
+} from '../features/admin/adminSlice';
 import { DEFAULT_FABRICS, DEFAULT_COLORS } from '../features/admin/adminSlice';
 import { Plus, Edit2, Trash2, X, Check, Tag, PlusCircle } from 'lucide-react';
 import { ImageInput } from './ImageInput';
@@ -46,15 +51,15 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
   const [form, setForm] = useState({
     ...EMPTY,
     ...data,
-    collection:  data?.collection  || (data?.categories?.[0]) || (data?.category) || 'Male',
+    collection: data?.collection || (data?.categories?.[0]) || (data?.category) || 'Male',
     subCategory: data?.subCategory || '',
-    categories:  data?.categories  ? [...data.categories] : data?.category ? [data.category] : EMPTY.categories,
-    tags:        data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
-    materials:   data?.materials ? [...data.materials] : [],
-    colors:      data?.colors    ? [...data.colors]    : [],
+    categories: data?.categories ? [...data.categories] : data?.category ? [data.category] : EMPTY.categories,
+    tags: data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
+    materials: data?.materials ? [...data.materials] : [],
+    colors: data?.colors ? [...data.colors] : [],
   });
 
-  const COLLECTIONS = customCollections.map(c => c.name);
+  const COLLECTIONS = (customCollections || []).map(c => c.name);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -65,13 +70,13 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
 
   const handleSave = () => onSave({
     ...form,
-    mrp:          Number(form.mrp),
+    mrp: Number(form.mrp),
     sellingPrice: Number(form.sellingPrice),
-    price:        Number(form.sellingPrice),
-    tags:         String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
+    price: Number(form.sellingPrice),
+    tags: String(form.tags).split(',').map(s => s.trim()).filter(Boolean),
     // Keep backwards-compat fields
-    categories:   [form.collection],
-    category:     form.collection,
+    categories: [form.collection],
+    category: form.collection,
   });
 
   return (
@@ -126,9 +131,8 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
                     key={col}
                     type="button"
                     onClick={() => setForm(f => ({ ...f, collection: col, subCategory: '' }))}
-                    className={`flex-1 py-2 text-xs font-bold rounded-xl border-2 transition-all font-sans ${
-                      active ? 'border-green-600 bg-green-600 text-white' : 'border-brand-border text-brand-dark/70 hover:border-green-600'
-                    }`}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl border-2 transition-all font-sans ${active ? 'border-green-600 bg-green-600 text-white' : 'border-brand-border text-brand-dark/70 hover:border-green-600'
+                      }`}
                   >
                     {active && <Check className="w-3 h-3 inline mr-1" />}
                     {col}
@@ -142,16 +146,15 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
           <div>
             <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-2 block">Category</label>
             <div className="flex flex-wrap gap-2">
-              {(subCategoriesByCol[form.collection.toLowerCase()] || []).map(cat => {
+              {(subCategoriesByCol[(form.collection || 'Male').toLowerCase()] || []).map(cat => {
                 const active = form.subCategory === cat;
                 return (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setForm(f => ({ ...f, subCategory: active ? '' : cat }))}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${
-                      active ? 'border-brand-dark bg-brand-dark text-white' : 'border-brand-border text-brand-dark/70 hover:border-brand-dark'
-                    }`}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all font-sans ${active ? 'border-brand-dark bg-brand-dark text-white' : 'border-brand-border text-brand-dark/70 hover:border-brand-dark'
+                      }`}
                   >
                     {cat}
                   </button>
@@ -384,7 +387,7 @@ const SubCategoryManager = ({ collections, subCategories, dispatch }) => {
 
 // ── Main AdminProducts page ────────────────────────────────────────────────
 export const AdminProducts = () => {
-  const { products, customCategories, subCategories } = useSelector(s => s.admin);
+  const { products, customCategories, subCategories, status, error } = useSelector(s => s.admin);
   const dispatch = useDispatch();
   const [modal, setModal] = useState(null);
 
@@ -397,6 +400,33 @@ export const AdminProducts = () => {
   const handleDelete = (id) => {
     if (window.confirm('Delete this product?')) dispatch(deleteProduct(id));
   };
+
+  if (status === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <div className="w-8 h-8 border-4 border-brand-dark border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-sans font-semibold text-brand-dark/50">Fetching products from database...</p>
+      </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 p-8 bg-red-50 rounded-2xl border border-red-100">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-2">
+          <span className="text-2xl">⚠️</span>
+        </div>
+        <p className="text-sm font-sans font-bold text-red-600">Error loading products</p>
+        <div className="bg-white/50 p-4 rounded-xl border border-red-100 max-w-md w-full">
+          <p className="text-xs font-mono text-red-500 break-all">{error || 'Unknown Error'}</p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => window.location.reload()} className="px-6 py-2 bg-red-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-200 hover:bg-red-700 transition-colors">Try Refreshing</button>
+          <button onClick={() => dispatch(fetchAdminData())} className="px-6 py-2 bg-white text-red-600 border border-red-200 rounded-xl text-xs font-bold hover:bg-red-50 transition-colors">Retry Fetch</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -426,51 +456,56 @@ export const AdminProducts = () => {
               <tr>{['Image', 'Name', 'Collection', 'Category', 'Pricing', 'Materials', 'Colors', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {products.map(p => (
-                <tr key={p.id} className="hover:bg-brand-muted transition-colors">
-                  <td className="px-4 py-3"><img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-brand-muted" /></td>
-                  <td className="px-4 py-3 font-semibold text-brand-dark max-w-[140px] truncate">{p.name}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 capitalize whitespace-nowrap">
-                      {p.collection || p.categories?.[0] || p.category || '—'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-brand-dark/70">{p.subCategory || '—'}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-brand-dark text-sm">₹{(p.sellingPrice ?? p.price).toLocaleString('en-IN')}</span>
-                      {p.mrp && p.mrp > (p.sellingPrice ?? p.price) && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-brand-dark/40 line-through">₹{p.mrp.toLocaleString('en-IN')}</span>
-                          <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{Math.round(((p.mrp - (p.sellingPrice ?? p.price)) / p.mrp) * 100)}% off</span>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {p.materials?.length > 0
-                      ? <span className="text-xs text-brand-dark/70">{p.materials.map(id => DEFAULT_FABRICS.find(f => f.id === id)?.name).filter(Boolean).join(', ')}</span>
-                      : <span className="text-xs text-brand-dark/30">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      {p.colors?.slice(0, 5).map(id => {
-                        const c = DEFAULT_COLORS.find(c => c.id === id);
-                        return c ? <span key={id} title={c.name} className="w-4 h-4 rounded-full border border-gray-200 inline-block" style={{ background: c.hex }} /> : null;
-                      })}
-                      {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length - 5}</span>}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button onClick={() => setModal({ data: p, isNew: false })} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {(products || []).map(p => {
+                if (!p) return null;
+                return (
+                  <tr key={p.id} className="hover:bg-brand-muted transition-colors">
+                    <td className="px-4 py-3"><img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-brand-muted" /></td>
+                    <td className="px-4 py-3 font-semibold text-brand-dark max-w-[140px] truncate">{p.name}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 capitalize whitespace-nowrap">
+                        {typeof (p.collection || p.categories?.[0] || p.category) === 'string'
+                          ? (p.collection || p.categories?.[0] || p.category)
+                          : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs text-brand-dark/70">{typeof p.subCategory === 'string' ? p.subCategory : '—'}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-brand-dark text-sm">₹{Number(p.sellingPrice ?? p.price ?? 0).toLocaleString('en-IN')}</span>
+                        {p.mrp && p.mrp > (p.sellingPrice ?? p.price) && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-brand-dark/40 line-through">₹{Number(p.mrp || 0).toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{Math.round(((p.mrp - (p.sellingPrice ?? p.price)) / p.mrp) * 100)}% off</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {Array.isArray(p.materials) && p.materials.length > 0
+                        ? <span className="text-xs text-brand-dark/70">{p.materials.map(id => DEFAULT_FABRICS.find(f => f.id === id)?.name).filter(Boolean).join(', ')}</span>
+                        : <span className="text-xs text-brand-dark/30">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {Array.isArray(p.colors) && p.colors.slice(0, 5).map(id => {
+                          const c = DEFAULT_COLORS.find(c => c.id === id);
+                          return c ? <span key={id} title={c.name} className="w-4 h-4 rounded-full border border-gray-200 inline-block" style={{ background: c.hex }} /> : null;
+                        })}
+                        {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length - 5}</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button onClick={() => setModal({ data: p, isNew: false })} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -467,6 +467,12 @@ const localService = {
   // Admin CMS
   getAdminData,
   setAdminData,
+  // Reviews
+  getReviews: async () => ok([]),
+  addReviewAdmin: async (r) => ok(r),
+  updateReviewAdmin: async (id, r) => ok(r),
+  deleteReviewAdmin: async (id) => ok({ id }),
+  toggleReviewFeaturedAdmin: async (id) => ok({ id }),
 };
 
 export default localService;

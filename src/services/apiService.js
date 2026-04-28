@@ -444,6 +444,66 @@ export const deletePet = async (userId, petId) => {
   }
 };
 
+// ── Reviews ─────────────────────────────────────────────────────────────────
+export const getReviews = async () => {
+  try {
+    const response = await axiosInstance.get(ENDPOINTS.SUPERADMIN_REVIEWS);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const addReviewAdmin = async (reviewData) => {
+  try {
+    const data = {
+      customer_name: reviewData.name,
+      location: reviewData.location,
+      rating: reviewData.rating,
+      comment: reviewData.text,
+      is_featured: reviewData.featured || false
+    };
+    const response = await axiosInstance.post(ENDPOINTS.SUPERADMIN_REVIEWS, data);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const updateReviewAdmin = async (id, reviewData) => {
+  try {
+    const data = {
+      customer_name: reviewData.name,
+      location: reviewData.location,
+      rating: reviewData.rating,
+      comment: reviewData.text,
+      is_featured: reviewData.featured
+    };
+    const response = await axiosInstance.put(ENDPOINTS.SUPERADMIN_REVIEW(id), data);
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const deleteReviewAdmin = async (id) => {
+  try {
+    await axiosInstance.delete(ENDPOINTS.SUPERADMIN_REVIEW(id));
+    return ok({ id });
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
+export const toggleReviewFeaturedAdmin = async (id) => {
+  try {
+    const response = await axiosInstance.patch(ENDPOINTS.SUPERADMIN_REVIEW_TOGGLE(id));
+    return unwrap(response);
+  } catch (e) {
+    return handleError(e);
+  }
+};
+
 // ── Admin / CMS ──────────────────────────────────────────────────────────────
 export const getAdminData = async (key) => {
   try {
@@ -512,6 +572,12 @@ const apiService = {
   getAdminData,
   getAdminDashboard,
   setAdminData,
+  // Reviews
+  getReviews,
+  addReviewAdmin,
+  updateReviewAdmin,
+  deleteReviewAdmin,
+  toggleReviewFeaturedAdmin,
 };
 
 export default apiService;

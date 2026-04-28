@@ -42,4 +42,9 @@ export const ENDPOINTS = {
   CATEGORIES:  '/categories',
   SUPERADMIN_CATEGORIES: '/superadmin/categories',
   SUPERADMIN_CATEGORY: (id) => `/superadmin/categories/${id}`,
+
+  // ── Reviews ───────────────────────────────────────────────────────────────
+  SUPERADMIN_REVIEWS: '/superadmin/reviews',
+  SUPERADMIN_REVIEW: (id) => `/superadmin/reviews/${id}`,
+  SUPERADMIN_REVIEW_TOGGLE: (id) => `/superadmin/reviews/${id}/toggle-featured`,
 };

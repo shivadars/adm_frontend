@@ -82,29 +82,48 @@ export const DEFAULT_CUSTOM_CATEGORIES = [
   { id: 'cat-5', name: 'Customization',   urlKey: 'customization',    description: 'Your idea, our craft. Send us your design and we\'ll stitch it into reality — fully personalised pet fashion, made just for you.' },
 ];
 
+// ── Review Mapping ──────────────────────────────────────────────────────────
+const mapReviewFromBackend = (r) => ({
+  id: r.id,
+  name: r.customer_name,
+  location: r.location,
+  rating: r.rating,
+  text: r.comment,
+  featured: Boolean(r.is_featured),
+  date: r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : '',
+  avatar: r.customer_name?.[0]?.toUpperCase() || 'C'
+});
+
 // ── Bootstrap thunk: load ALL admin data from dataService at startup ──────
 export const fetchAdminData = createAsyncThunk(
   'admin/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      // Fetch the real products and categories from the database
-      const [resProducts, resCategories] = await Promise.all([
+      // Fetch the real products, categories (banners), and REVIEWS from the database
+      // PLUS the dynamic collection/sub-category mapping
+      const [resProducts, resCategories, resReviews, resCustom, resSub] = await Promise.all([
         dataService.getProducts(),
-        dataService.getCategories()
+        dataService.getCategories(),
+        dataService.getReviews(),
+        dataService.getAdminData('customCategories'),
+        dataService.getAdminData('subCategories')
       ]);
       
       const dbProducts   = (resProducts.success && Array.isArray(resProducts.data)) ? resProducts.data : [];
       const dbCategories = (resCategories.success && Array.isArray(resCategories.data)) ? resCategories.data : [];
+      const dbReviews    = (resReviews.success && Array.isArray(resReviews.data)) ? resReviews.data.map(mapReviewFromBackend) : [];
+      const dbCustom     = (resCustom.success && Array.isArray(resCustom.data)) ? resCustom.data : null;
+      const dbSub        = (resSub.success && typeof resSub.data === 'object') ? resSub.data : null;
       
       const hero             = DEFAULT_HERO;
       const categories       = mockCategories;
       const content          = DEFAULT_CONTENT;
-      const reviews          = DEFAULT_REVIEWS;
+      const reviews          = dbReviews.length > 0 ? dbReviews : DEFAULT_REVIEWS;
       const why              = DEFAULT_WHY;
       const enquiries        = [];
-      const customCategories = dbCategories.length > 0 ? dbCategories : DEFAULT_CUSTOM_CATEGORIES;
 
-      console.log('Admin fetch complete. Real Products found:', dbProducts.length);
+
+
 
       // ⚠️ FIX: Use ONLY database products, NO MORE MOCK DATA merging.
       const allProducts = dbProducts;
@@ -128,7 +147,12 @@ export const fetchAdminData = createAsyncThunk(
         reviews:           reviews,
         whyChooseUs:       why,
         enquiries:         enquiries,
-        customCategories:  customCategories,
+        customCategories:  dbCustom || DEFAULT_CUSTOM_CATEGORIES,
+        subCategories:     dbSub    || {
+          male:         ['Casual', 'Party Wear', 'Festive', 'Tuxedo'],
+          female:       ['Casual', 'Designer', 'Festive', 'Party Wear', 'Skirt Top/ Co-ords', 'Lehengas'],
+          accessories:  ['Bandana', 'Caps', 'HairClips', 'Ties'],
+        },
         navbarFeatured:    {
           male: [null, null, null],
           female: [null, null, null],
@@ -140,6 +164,31 @@ export const fetchAdminData = createAsyncThunk(
     }
   }
 );
+
+// ── Review Thunks ───────────────────────────────────────────────────────────
+export const createReviewAsync = createAsyncThunk('admin/createReview', async (data, { rejectWithValue }) => {
+  const res = await dataService.addReviewAdmin(data);
+  if (!res.success) return rejectWithValue(res.error);
+  return mapReviewFromBackend(res.data);
+});
+
+export const updateReviewAsync = createAsyncThunk('admin/updateReview', async (data, { rejectWithValue }) => {
+  const res = await dataService.updateReviewAdmin(data.id, data);
+  if (!res.success) return rejectWithValue(res.error);
+  return mapReviewFromBackend(res.data);
+});
+
+export const deleteReviewAsync = createAsyncThunk('admin/deleteReview', async (id, { rejectWithValue }) => {
+  const res = await dataService.deleteReviewAdmin(id);
+  if (!res.success) return rejectWithValue(res.error);
+  return id;
+});
+
+export const toggleReviewFeaturedAsync = createAsyncThunk('admin/toggleReview', async (id, { rejectWithValue }) => {
+  const res = await dataService.toggleReviewFeaturedAdmin(id);
+  if (!res.success) return rejectWithValue(res.error);
+  return mapReviewFromBackend(res.data);
+});
 
 // ── Sync thunk: persist a single admin data key via dataService ───────────
 export const syncAdminData = createAsyncThunk(
@@ -179,6 +228,7 @@ const adminSlice = createSlice({
       accessories:  ['Bandana', 'Caps', 'HairClips', 'Ties'],
     },
     status:           'idle',
+    error:            null,
   },
   reducers: {
     // ── Products CRUD ────────────────────────────────────────────────────
@@ -357,9 +407,25 @@ const adminSlice = createSlice({
           state.navbarFeatured = payload.navbarFeatured;
         }
       })
-      .addCase(fetchAdminData.rejected, (state) => {
+      .addCase(fetchAdminData.rejected, (state, { payload }) => {
         state.status = 'failed';
-        // Keep defaults on failure
+        state.error = payload || 'Could not connect to the database.';
+      })
+      
+      // Review Handlers
+      .addCase(createReviewAsync.fulfilled, (state, { payload }) => {
+        state.reviews.push(payload);
+      })
+      .addCase(updateReviewAsync.fulfilled, (state, { payload }) => {
+        const idx = state.reviews.findIndex(r => r.id === payload.id);
+        if (idx !== -1) state.reviews[idx] = payload;
+      })
+      .addCase(deleteReviewAsync.fulfilled, (state, { payload: id }) => {
+        state.reviews = state.reviews.filter(r => r.id !== id);
+      })
+      .addCase(toggleReviewFeaturedAsync.fulfilled, (state, { payload }) => {
+        const idx = state.reviews.findIndex(r => r.id === payload.id);
+        if (idx !== -1) state.reviews[idx] = payload;
       });
   },
 });

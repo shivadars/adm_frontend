@@ -77,6 +77,9 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
     // Keep backwards-compat fields
     categories: [form.collection],
     category: form.collection,
+    // Map UI fields to Database fields (for backend)
+    materials: form.fabric,
+    colors: form.color,
   });
 
   return (

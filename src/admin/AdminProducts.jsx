@@ -20,7 +20,7 @@ const EMPTY = {
   categories: ['Male'], // kept for backwards compat
   tags: '', description: '',
   rating: 4.5, reviews: 0,
-  materials: [], colors: [],
+  fabric: '', color: '',
 };
 
 // ── Chip multi-select (materials, colors, categories) ──────────────────────
@@ -55,8 +55,8 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
     subCategory: data?.subCategory || '',
     categories: data?.categories ? [...data.categories] : data?.category ? [data.category] : EMPTY.categories,
     tags: data?.tags ? (Array.isArray(data.tags) ? data.tags.join(', ') : data.tags) : EMPTY.tags,
-    materials: data?.materials ? [...data.materials] : [],
-    colors: data?.colors ? [...data.colors] : [],
+    fabric: data?.fabric || '',
+    color: data?.color || '',
   });
 
   const COLLECTIONS = (customCollections || []).map(c => c.name);
@@ -163,27 +163,16 @@ const Modal = ({ data, onClose, onSave, isNew, customCollections, subCategoriesB
             </div>
           </div>
 
-          {/* Material selector */}
-          <ChipSelect
-            label="Available Materials (select all that apply)"
-            options={DEFAULT_FABRICS}
-            selected={form.materials}
-            onToggle={toggleArr('materials')}
-          />
-
-          {/* Color selector */}
-          <ChipSelect
-            label="Available Colors (select all that apply)"
-            options={DEFAULT_COLORS}
-            selected={form.colors}
-            onToggle={toggleArr('colors')}
-            renderChip={(opt, active) => (
-              <>
-                <span className="w-3.5 h-3.5 rounded-full border border-white/60 shrink-0" style={{ background: opt.hex, boxShadow: active ? `0 0 0 2px ${opt.hex}66` : undefined }} />
-                {opt.name}
-              </>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Fabric</label>
+              <input type="text" value={form.fabric} onChange={set('fabric')} placeholder="e.g. Cotton" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-brand-dark/70 uppercase tracking-wider font-sans mb-1 block">Colour</label>
+              <input type="text" value={form.color} onChange={set('color')} placeholder="e.g. Red" className="w-full border border-brand-border rounded-xl px-3 py-2.5 text-sm font-sans focus:outline-none focus:border-green-600" />
+            </div>
+          </div>
 
           <ImageInput
             label="Product Image — Upload or Paste URL"
@@ -453,7 +442,7 @@ export const AdminProducts = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-brand-muted text-xs text-brand-dark/70 uppercase tracking-wider font-sans">
-              <tr>{['Image', 'Name', 'Collection', 'Category', 'Pricing', 'Materials', 'Colors', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
+              <tr>{['Image', 'Name', 'Collection', 'Category', 'Pricing', 'Fabric', 'Colour', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(products || []).map(p => {
@@ -484,18 +473,10 @@ export const AdminProducts = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {Array.isArray(p.materials) && p.materials.length > 0
-                        ? <span className="text-xs text-brand-dark/70">{p.materials.map(id => DEFAULT_FABRICS.find(f => f.id === id)?.name).filter(Boolean).join(', ')}</span>
-                        : <span className="text-xs text-brand-dark/30">—</span>}
+                      <span className="text-xs text-brand-dark/70">{p.fabric || '—'}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        {Array.isArray(p.colors) && p.colors.slice(0, 5).map(id => {
-                          const c = DEFAULT_COLORS.find(c => c.id === id);
-                          return c ? <span key={id} title={c.name} className="w-4 h-4 rounded-full border border-gray-200 inline-block" style={{ background: c.hex }} /> : null;
-                        })}
-                        {(p.colors?.length ?? 0) > 5 && <span className="text-xs text-brand-dark/50">+{p.colors.length - 5}</span>}
-                      </div>
+                      <span className="text-xs text-brand-dark/70">{p.color || '—'}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

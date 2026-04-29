@@ -8,7 +8,7 @@ import { DEFAULT_FABRICS, DEFAULT_COLORS } from '../features/admin/adminSlice';
 import { 
   Star, ChevronRight, Heart, 
   Palette, X, Check, ChevronDown, ChevronUp,
-  Wind, RotateCcw, ShoppingBag
+  Wind, RotateCcw, ShoppingBag, Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCard } from '../components/product/ProductCard';
@@ -130,8 +130,8 @@ export const ProductDetails = () => {
   
   const [product, setProduct]             = useState(null);
   const [loading, setLoading]             = useState(true);
-  const [selectedMaterial, setSelectedMaterial] = useState('');
-  const [selectedColor, setSelectedColor]       = useState('');
+  const [fabric, setFabric]               = useState('');
+  const [color, setColor]                 = useState('');
   const [quantity, setQuantity]           = useState(1);
   const [wishlisted, setWishlisted]       = useState(false);
   const [added, setAdded]                 = useState(false);
@@ -157,8 +157,8 @@ export const ProductDetails = () => {
     const found = allProducts.find(p => String(p.id) === String(id));
     if (found) {
       setProduct(found);
-      if (found.materials?.length > 0) setSelectedMaterial(found.materials[0]);
-      if (found.colors?.length > 0)    setSelectedColor(found.colors[0]);
+      if (found.fabric) setFabric(found.fabric);
+      if (found.color)  setColor(found.color);
     }
     setLoading(false);
   }, [id, allProducts]);
@@ -167,8 +167,8 @@ export const ProductDetails = () => {
     dispatch(addToCart({ 
       product, 
       quantity, 
-      material: selectedMaterial, 
-      color: selectedColor,
+      material: fabric, 
+      color: color,
       petName,
       specialRequests
     }));
@@ -187,9 +187,8 @@ export const ProductDetails = () => {
       productId:   product.id,
       productName: product.name,
       productImage: product.image,
-      selectedSize,
-      selectedColor,
-      selectedMaterial,
+      selectedColor: color,
+      selectedMaterial: fabric,
       ...extra,
     }));
   };
@@ -211,11 +210,8 @@ export const ProductDetails = () => {
   const hasDiscount  = mrp && mrp > sellingPrice;
   const discountPct  = hasDiscount ? Math.round(((mrp - sellingPrice) / mrp) * 100) : 0;
 
-  const productFabrics = DEFAULT_FABRICS.filter(f => product.materials?.includes(f.id));
-  const productColors  = DEFAULT_COLORS.filter(c => product.colors?.includes(c.id));
-
-  const selectedColorObj   = DEFAULT_COLORS.find(c => c.id === selectedColor);
-  const selectedMaterialObj = DEFAULT_FABRICS.find(f => f.id === selectedMaterial);
+  const productFabrics = product.fabric ? [product.fabric] : [];
+  const productColors  = product.color ? [product.color] : [];
 
   // Similar Products filtering
   const similarProducts = allProducts
@@ -314,7 +310,7 @@ export const ProductDetails = () => {
               </Accordion>
               <Accordion title="FABRIC & CARE">
                 <div className="space-y-3">
-                  <p>Materials: {productFabrics.map(f => f.name).join(', ') || 'Cotton & Poly blend'}</p>
+                  <p>Fabric: {product.fabric || 'Cotton & Poly blend'}</p>
                   <p>Hand wash gently with mild detergent. Do not bleach. Air dry in shade to maintain color vibrancy.</p>
                 </div>
               </Accordion>
@@ -366,56 +362,22 @@ export const ProductDetails = () => {
             <div className="space-y-8 mb-10">
               
 
-              {/* Material Selector */}
-              <div>
-                <span className="text-[11px] font-bold text-brand-dark uppercase tracking-widest font-sans mb-4 block">Select Material</span>
-                <div className="flex flex-wrap gap-3">
-                  {(product.materials || DEFAULT_FABRICS).map(fabric => (
-                    <button
-                      key={fabric.name || fabric}
-                      onClick={() => setSelectedMaterial(fabric.name || fabric)}
-                      className={`h-11 px-6 rounded-2xl border-2 text-[11px] font-bold transition-all duration-300 font-sans uppercase tracking-wider ${
-                        selectedMaterial === (fabric.name || fabric)
-                          ? 'border-brand-dark bg-brand-dark text-white'
-                          : 'border-brand-border text-brand-dark/60 bg-white hover:border-brand-dark'
-                      }`}
-                    >
-                      {fabric.name || fabric}
-                    </button>
-                  ))}
+              {/* Customization Details (Read-only) */}
+              <div className="flex items-end gap-8 mb-6">
+                <div>
+                  <span className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-widest font-sans mb-1 block">Fabric</span>
+                  <span className="text-sm font-semibold text-brand-dark font-sans">{product.fabric || '—'}</span>
                 </div>
-              </div>
-
-              {/* Color Selector */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-bold text-brand-dark uppercase tracking-widest font-sans">Select Colour</span>
-                  <button 
-                    onClick={() => setColorModal(true)}
-                    className="flex items-center gap-1.5 text-[10px] font-extrabold text-brand-pink uppercase tracking-wider hover:underline transition-all"
-                  >
-                    <Palette className="w-3 h-3" /> Custom Colour?
-                  </button>
+                <div>
+                  <span className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-widest font-sans mb-1 block">Colour</span>
+                  <span className="text-sm font-semibold text-brand-dark font-sans">{product.color || '—'}</span>
                 </div>
-                <div className="flex flex-wrap gap-4">
-                  {(product.colors || DEFAULT_COLORS).map(color => (
-                    <button
-                      key={color.name || color}
-                      onClick={() => setSelectedColor(color.name || color)}
-                      className={`group relative flex flex-col items-center gap-2`}
-                    >
-                      <div 
-                        className={`w-10 h-10 rounded-full border-2 transition-all duration-300 transform ${
-                          selectedColor === (color.name || color) ? 'border-brand-dark scale-110 shadow-md' : 'border-transparent hover:scale-105'
-                        }`}
-                        style={{ backgroundColor: color.hex || color }}
-                      />
-                      <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${selectedColor === (color.name || color) ? 'text-brand-dark' : 'text-brand-dark/40'}`}>
-                        {color.name || color}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <button 
+                  onClick={() => setColorModal(true)}
+                  className="flex items-center gap-1.5 text-[10px] font-extrabold text-brand-pink uppercase tracking-wider hover:underline transition-all mb-0.5"
+                >
+                  <Palette className="w-3 h-3" /> Custom Colour?
+                </button>
               </div>
 
               {/* Personalization Inputs */}

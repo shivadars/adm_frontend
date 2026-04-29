@@ -22,8 +22,6 @@ const PetOnboarding = () => {
     }
   }, [pets, navigate]);
 
-  if (!Array.isArray(fields)) return null;
-
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -36,6 +34,8 @@ const PetOnboarding = () => {
       }
     };
   }, [preview]);
+
+  if (!Array.isArray(fields)) return null;
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));

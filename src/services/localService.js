@@ -254,6 +254,52 @@ export const deleteProduct = async (id) => {
   }
 };
 
+// ── Categories ──────────────────────────────────────────────────────────────
+export const getCategories = async () => {
+  try {
+    const categories = read(KEYS.CATEGORIES, mockCategories);
+    return ok(categories);
+  } catch (e) {
+    return err(e.message);
+  }
+};
+
+export const addCategory = async (name) => {
+  try {
+    const categories = read(KEYS.CATEGORIES, mockCategories);
+    const newCat = { id: Date.now(), name, slug: name.toLowerCase().replace(/ /g, '-') };
+    categories.push(newCat);
+    write(KEYS.CATEGORIES, categories);
+    return ok(newCat);
+  } catch (e) {
+    return err(e.message);
+  }
+};
+
+export const updateCategory = async (id, data) => {
+  try {
+    const categories = read(KEYS.CATEGORIES, mockCategories);
+    const idx = categories.findIndex(c => c.id === id);
+    if (idx === -1) return err('Category not found');
+    categories[idx] = { ...categories[idx], ...data };
+    write(KEYS.CATEGORIES, categories);
+    return ok(categories[idx]);
+  } catch (e) {
+    return err(e.message);
+  }
+};
+
+export const deleteCategory = async (id) => {
+  try {
+    let categories = read(KEYS.CATEGORIES, mockCategories);
+    categories = categories.filter(c => c.id !== id);
+    write(KEYS.CATEGORIES, categories);
+    return ok({ id });
+  } catch (e) {
+    return err(e.message);
+  }
+};
+
 // ── Cart ─────────────────────────────────────────────────────────────────────
 export const getCart = async () => {
   try {
@@ -467,6 +513,11 @@ const localService = {
   // Admin CMS
   getAdminData,
   setAdminData,
+  // Categories
+  getCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
   // Reviews
   getReviews: async () => ok([]),
   addReviewAdmin: async (r) => ok(r),

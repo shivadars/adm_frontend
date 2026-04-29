@@ -13,7 +13,6 @@ const TOKEN_KEY = 'adoremom_token';
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
   },
   withCredentials: false, // Set to false because we use Bearer token auth, not cookie auth

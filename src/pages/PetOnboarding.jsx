@@ -6,19 +6,36 @@ import {
   PawPrint, Image as ImageIcon, Calendar, AtSign, 
   ChevronRight, Heart, Plus, X 
 } from 'lucide-react';
-import { addPet, selectPetFields } from '../features/pets/petSlice';
+import { addPet, selectPetFields, selectUserPets } from '../features/pets/petSlice';
 
 const PetOnboarding = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const fields = useSelector(selectPetFields) || [];
+  const pets = useSelector(state => selectUserPets(state, user?.id)) || [];
 
-  if (!Array.isArray(fields)) return null;
+  // If pets already exist, redirect to the dashboard
+  React.useEffect(() => {
+    if (pets.length > 0) {
+      navigate('/profile/pets');
+    }
+  }, [pets, navigate]);
 
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
+  
+  // Clean up object URLs to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
+  if (!Array.isArray(fields)) return null;
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -27,24 +44,23 @@ const PetOnboarding = () => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        handleInputChange('photo', reader.result);
-      };
-      reader.readAsDataURL(file);
+      setPreview(URL.createObjectURL(file));
+      handleInputChange('photo', file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    setTimeout(() => {
-      dispatch(addPet({ userId: user?.id, pet: formData }));
-      setLoading(false);
+    try {
+      await dispatch(addPet({ userId: user?.id, pet: formData })).unwrap();
       navigate('/');
-    }, 1500);
+    } catch (err) {
+      console.error("Failed to add pet:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

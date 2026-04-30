@@ -5,41 +5,43 @@ import { logout } from '../features/auth/authSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, ImagePlay,
-  FileText, BarChart3, LogOut, Menu, X, ChevronRight,
-  Tag, Star, Settings, ClipboardList, MessageCircle, PawPrint
+  FileText, LogOut, Menu, X,
+  Tag, Star, Settings, MessageCircle, PawPrint
 } from 'lucide-react';
 
-const NAV = [
-  { label: 'Dashboard',   icon: LayoutDashboard, to: '/admin' },
-  { label: 'Orders',      icon: ShoppingBag,      to: '/admin/orders' },
-  { label: 'Products',    icon: Package,          to: '/admin/products' },
-  { label: 'Customers',   icon: Users,            to: '/admin/customers' },
-  { label: 'Inventory',   icon: ClipboardList,    to: '/admin/inventory' },
-  { label: 'Pet Profiles', icon: PawPrint,          to: '/admin/pet-profiles' },
-  { label: 'Coupons',     icon: Tag,              to: '/admin/coupons' },
-  { label: 'Reviews',     icon: Star,             to: '/admin/reviews' },
-  { label: 'Enquiries',   icon: MessageCircle,    to: '/admin/enquiries' },
-  { label: 'Banners',     icon: ImagePlay,        to: '/admin/banners' },
-  { label: 'Content',     icon: FileText,         to: '/admin/content' },
-  { label: 'Analytics',   icon: BarChart3,        to: '/admin/analytics' },
-  { label: 'Settings',    icon: Settings,         to: '/admin/settings' },
+const NAV_PRIMARY = [
+  { label: 'Dashboard',    icon: LayoutDashboard, to: '/admin' },
+  { label: 'Products',     icon: Package,         to: '/admin/products' },
+  { label: 'Coupons',      icon: Tag,             to: '/admin/coupons' },
+  { label: 'Manage Site',  icon: Settings,        to: '/' },
+  { label: 'Content',      icon: FileText,        to: '/admin/content' },
+  { label: 'Banners',      icon: ImagePlay,       to: '/admin/banners' },
+  { label: 'Pet Profiles', icon: PawPrint,        to: '/admin/pet-profiles' },
 ];
+
+const NAV_SECONDARY = [
+  { label: 'Customers',   icon: Users,           to: '/admin/customers' },
+  { label: 'Orders',      icon: ShoppingBag,     to: '/admin/orders' },
+  { label: 'Reviews',     icon: Star,            to: '/admin/reviews' },
+  { label: 'Enquiries',   icon: MessageCircle,   to: '/admin/enquiries' },
+];
+
+const NAV = [...NAV_PRIMARY, ...NAV_SECONDARY];
 
 const SidebarContent = ({ onClose, location, handleLogout }) => (
   <div
     className="flex flex-col h-full"
-    style={{ backgroundColor: '#fcfcfc' }}
+    style={{ backgroundColor: '#e0f4ee' }}
   >
     {/* Logo */}
     <div className="px-6 py-4 border-b border-brand-border/50">
       <div className="flex items-center justify-between">
         <Link to="/" className="block">
           <img 
-            src="/logo.png" 
+            src="/newlogo.png" 
             alt="A'DOREMOM Couture" 
-            className="h-18 w-auto object-contain"
+            className="h-20 w-full object-contain mx-auto"
           />
-          <p className="text-[9px] text-brand-dark/50 uppercase tracking-[0.2em] font-sans">Super Admin Dashboard</p>
         </Link>
         {onClose && (
           <button onClick={onClose} className="lg:hidden text-brand-dark/60 hover:text-brand-dark p-1">
@@ -50,22 +52,42 @@ const SidebarContent = ({ onClose, location, handleLogout }) => (
     </div>
 
     {/* Nav items */}
-    <nav className="flex-1 px-4 py-6 overflow-y-auto space-y-1">
-      {NAV.map(({ label, icon: Icon, to }) => {
+    <nav className="flex-1 px-4 py-5 overflow-y-auto space-y-0.5">
+      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-brand-dark/40 px-4 pb-2 pt-1 font-sans">Admin Menu</p>
+      {NAV_PRIMARY.map(({ label, icon: Icon, to }) => {
         const active = location.pathname === to;
         return (
           <Link key={to} to={to} onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold font-sans transition-all duration-200 ${
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold font-sans transition-all duration-200 ${
               active
-                ? 'bg-[#e8f0fe] text-brand-blue'
+                ? 'bg-[#073b3a] text-white'
                 : 'text-brand-dark/70 hover:bg-brand-muted hover:text-brand-dark'
             }`}
           >
-            <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-brand-blue' : ''}`} />
+            <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : ''}`} />
             {label}
           </Link>
         );
       })}
+
+      <div className="pt-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-brand-dark/40 px-4 pb-2 font-sans">Customers</p>
+        {NAV_SECONDARY.map(({ label, icon: Icon, to }) => {
+          const active = location.pathname === to;
+          return (
+            <Link key={to} to={to} onClick={onClose}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold font-sans transition-all duration-200 ${
+                active
+                  ? 'bg-[#073b3a] text-white'
+                  : 'text-brand-dark/70 hover:bg-brand-muted hover:text-brand-dark'
+              }`}
+            >
+              <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : ''}`} />
+              {label}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
 
     {/* Logout */}
@@ -88,7 +110,7 @@ const Sidebar = ({ open, setOpen }) => {
   return (
     <>
       {/* ── Desktop static sidebar ───────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-[260px] shrink-0 border-r border-brand-border" style={{ backgroundColor: '#fcfcfc' }}>
+      <aside className="hidden lg:flex flex-col w-[260px] shrink-0 border-r border-brand-border" style={{ backgroundColor: '#e0f4ee' }}>
         <SidebarContent location={location} handleLogout={handleLogout} onClose={null} />
       </aside>
 
@@ -107,7 +129,7 @@ const Sidebar = ({ open, setOpen }) => {
         animate={{ x: open ? 0 : '-100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 220 }}
         className="fixed top-0 left-0 bottom-0 w-[260px] z-50 lg:hidden flex flex-col border-r border-brand-border"
-        style={{ backgroundColor: '#fcfcfc' }}
+        style={{ backgroundColor: '#e0f4ee' }}
       >
         <SidebarContent location={location} handleLogout={handleLogout} onClose={() => setOpen(false)} />
       </motion.div>
@@ -118,33 +140,26 @@ const Sidebar = ({ open, setOpen }) => {
 export const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { user } = useSelector(s => s.auth);
+  const { user, role } = useSelector(s => s.auth);
   const currentPage = NAV.find(n => n.to === location.pathname)?.label || 'Dashboard';
 
   return (
-    <div className="flex h-screen bg-[#f9fafb] overflow-hidden">
+    <div className="flex h-screen bg-[#e0f4ee] overflow-hidden">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="bg-white border-b border-brand-border px-6 sm:px-10 py-5 flex items-center justify-between shrink-0">
+        <header className="bg-[#e0f4ee] border-b border-brand-border px-6 sm:px-10 py-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-brand-dark/70 hover:text-brand-dark">
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="font-serif text-2xl font-bold text-brand-dark">
-              {currentPage === 'Dashboard' ? 'Admin Dashboard' : currentPage}
+              {currentPage === 'Dashboard' ? ((role?.toLowerCase() === 'superadmin' || user?.role?.toLowerCase() === 'superadmin') ? 'Superadmin Dashboard' : 'Admin Dashboard') : currentPage}
             </h1>
           </div>
-          
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-brand-light/30 px-3 py-1.5 rounded-full cursor-pointer hover:bg-brand-light/50 transition border border-brand-border/50">
-              <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-sm font-bold text-brand-dark overflow-hidden border border-brand-border">
-                {user?.name?.[0] || 'A'}
-              </div>
-              <span className="text-sm font-bold text-brand-dark pr-2">Admin</span>
-              <ChevronRight className="w-3.5 h-3.5 text-brand-dark/50 rotate-90" />
-            </div>
+            {/* Empty space on the right, user pill removed as requested */}
           </div>
         </header>
 

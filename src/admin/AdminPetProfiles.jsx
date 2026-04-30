@@ -52,7 +52,7 @@ const AdminPetProfiles = () => {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <p className="text-[10px] font-extrabold text-brand-blue uppercase tracking-[0.2em] mb-2 font-sans">Dynamic CMS</p>
+          <p className="text-[10px] font-extrabold text-[#073b3a] uppercase tracking-[0.2em] mb-2 font-sans">Dynamic CMS</p>
           <h1 className="font-serif text-3xl font-bold text-brand-dark">Pet Profile Configuration</h1>
         </div>
         <div className="flex gap-3">
@@ -67,7 +67,7 @@ const AdminPetProfiles = () => {
           <button 
             onClick={handleSave}
             disabled={!hasChanges}
-            className="flex items-center gap-2 bg-brand-blue text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 disabled:opacity-50 transition-all"
+            className="flex items-center gap-2 bg-[#073b3a] text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 disabled:opacity-50 transition-all"
           >
             <Save className="w-4 h-4" /> Save Configuration
           </button>
@@ -75,9 +75,9 @@ const AdminPetProfiles = () => {
       </div>
 
       <div className="bg-white rounded-[2rem] border border-brand-border shadow-soft overflow-hidden">
-        <div className="p-8 border-b border-brand-border bg-brand-light/30">
+        <div className="p-8 border-b border-brand-border /30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center text-brand-blue">
+            <div className="w-10 h-10 bg-[#073b3a]/10 rounded-xl flex items-center justify-center text-[#073b3a]">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -104,7 +104,7 @@ const AdminPetProfiles = () => {
                     <input 
                       value={field.label}
                       onChange={(e) => handleUpdateField(field.id, { label: e.target.value })}
-                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-brand-blue outline-none transition-all"
+                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-[#073b3a] outline-none transition-all"
                     />
                   </div>
                   
@@ -113,7 +113,7 @@ const AdminPetProfiles = () => {
                     <select 
                       value={field.type}
                       onChange={(e) => handleUpdateField(field.id, { type: e.target.value })}
-                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-brand-blue outline-none transition-all appearance-none"
+                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-[#073b3a] outline-none transition-all appearance-none"
                     >
                       {fieldTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
@@ -124,7 +124,7 @@ const AdminPetProfiles = () => {
                     <input 
                       value={field.placeholder || ''}
                       onChange={(e) => handleUpdateField(field.id, { placeholder: e.target.value })}
-                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-brand-blue outline-none transition-all"
+                      className="w-full h-11 px-4 bg-white border border-brand-border rounded-xl text-sm font-sans focus:border-[#073b3a] outline-none transition-all"
                     />
                   </div>
 
@@ -135,7 +135,7 @@ const AdminPetProfiles = () => {
                         type="checkbox"
                         checked={field.required}
                         onChange={(e) => handleUpdateField(field.id, { required: e.target.checked })}
-                        className="w-5 h-5 rounded border-brand-border text-brand-blue focus:ring-brand-blue"
+                        className="w-5 h-5 rounded border-brand-border text-[#073b3a] focus:ring-[#073b3a]"
                       />
                     </div>
                   </div>
@@ -153,7 +153,7 @@ const AdminPetProfiles = () => {
 
             <button 
               onClick={handleAddField}
-              className="w-full py-6 border-2 border-dashed border-brand-border rounded-2xl flex items-center justify-center gap-2 text-brand-dark/40 hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/5 transition-all group font-bold uppercase tracking-widest text-[11px]"
+              className="w-full py-6 border-2 border-dashed border-brand-border rounded-2xl flex items-center justify-center gap-2 text-brand-dark/40 hover:text-[#073b3a] hover:border-[#073b3a] hover:bg-[#073b3a]/5 transition-all group font-bold uppercase tracking-widest text-[11px]"
             >
               <Plus className="w-5 h-5 transition-transform group-hover:scale-110" />
               Add Custom Detail Field
@@ -162,8 +162,8 @@ const AdminPetProfiles = () => {
         </div>
       </div>
       
-      <div className="mt-8 bg-brand-blue/5 rounded-2xl p-6 border border-brand-blue/10">
-        <p className="text-sm text-brand-blue/70 flex items-center gap-2">
+      <div className="mt-8 bg-[#073b3a]/5 rounded-2xl p-6 border border-[#073b3a]/10">
+        <p className="text-sm text-[#073b3a]/70 flex items-center gap-2">
           <PawPrint className="w-4 h-4" />
           <strong>Pro Tip:</strong> Changes here will immediately reflect on the user onboarding page and pet profiles.
         </p>

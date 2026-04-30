@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './ProtectedRoute';
 import { AdminLayout } from '../admin/AdminLayout';
 
@@ -55,7 +55,8 @@ const AppRoutes = () => (
       <Route path="/register"        element={<Register />} />
 
       {/* Protected (customers) */}
-      <Route path="/cart"           element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+      {/* /cart redirects directly to /checkout — no separate cart page */}
+      <Route path="/cart"           element={<Navigate to="/checkout" replace />} />
       <Route path="/checkout"       element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
       <Route path="/profile"        element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/profile/pets"   element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />

@@ -1,36 +1,47 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateProfile } from '../features/auth/authSlice';
+import { updateUserProfile } from '../features/auth/authSlice';
+import { fetchOrders }       from '../features/orders/ordersSlice';
 import { motion } from 'framer-motion';
 import { User, Package, Edit3, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Profile = () => {
-  const { user } = useSelector(s => s.auth);
-  const { orders } = useSelector(s => s.orders);
-  const dispatch = useDispatch();
+  const { user, status: authStatus } = useSelector(s => s.auth);
+  const { orders }                   = useSelector(s => s.orders);
+  const dispatch                     = useDispatch();
+
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
-  const [saved, setSaved] = useState(false);
+  const [form,    setForm]    = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
+  const [saved,   setSaved]   = useState(false);
 
-  const myOrders = orders.filter(o => o.userId === user?.id);
+  // No need to filter by userId anymore as the API already scopes to current user
+  const myOrders = orders;
 
-  const handleSave = () => {
-    dispatch(updateProfile(form));
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Refresh orders on mount
+  React.useEffect(() => { dispatch(fetchOrders()); }, [dispatch]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    const result = await dispatch(updateUserProfile({ id: user.id, data: form }));
+    if (updateUserProfile.fulfilled.match(result)) {
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
   };
 
   const STATUS_COLORS = {
-    Pending: 'bg-amber-100 text-amber-700',
-    Shipped: 'bg-blue-100 text-blue-700',
-    Delivered: 'bg-green-100 text-green-700',
-    Returned: 'bg-red-100 text-red-700',
+    placed:     'bg-amber-100 text-amber-700',
+    confirmed:  'bg-blue-100 text-blue-700',
+    processing: 'bg-indigo-100 text-indigo-700',
+    shipped:    'bg-purple-100 text-purple-700',
+    delivered:  'bg-green-100 text-green-700',
+    cancelled:  'bg-red-100 text-red-700',
   };
 
   return (
-    <div className="min-h-screen bg-brand-light">
+    <div className="min-h-screen ">
       <div className="bg-white border-b border-brand-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="brand-overline mb-1">Account</p>
@@ -65,11 +76,17 @@ export const Profile = () => {
                     <div key={key}>
                       <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/50 font-sans">{label}</label>
                       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                        className="w-full mt-1 border border-brand-border bg-brand-light rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-brand-dark" />
+                        className="w-full mt-1 border border-brand-border  rounded-xl px-3 py-2 text-sm font-sans focus:outline-none focus:border-brand-dark" />
                     </div>
                   ))}
                   <div className="flex gap-2 pt-2">
-                    <button onClick={handleSave} className="btn-brand flex-1 justify-center py-2 px-4 text-sm">Save</button>
+                    <button
+                      onClick={handleSave}
+                      disabled={authStatus === 'loading'}
+                      className="btn-brand flex-1 justify-center py-2 px-4 text-sm"
+                    >
+                      {authStatus === 'loading' ? 'Saving...' : 'Save'}
+                    </button>
                     <button onClick={() => setEditing(false)} className="btn-brand-outline flex-1 justify-center py-2 px-4 text-sm">Cancel</button>
                   </div>
                 </>
@@ -109,15 +126,19 @@ export const Profile = () => {
                 {myOrders.map(order => (
                   <div key={order.id} className="px-6 py-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono text-xs text-brand-dark/70">{order.id}</span>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_COLORS[order.status] || 'bg-brand-muted text-brand-dark/80'}`}>
-                        {order.status}
+                      <span className="font-mono text-xs text-brand-dark/70">{order.order_number}</span>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${STATUS_COLORS[order.order_status] || 'bg-brand-muted text-brand-dark/80'}`}>
+                        {order.order_status}
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-brand-dark font-sans">{order.items?.length} item(s)</p>
+                    <p className="text-sm font-semibold text-brand-dark font-sans">
+                      {order.order_items?.length || 0} item(s)
+                    </p>
                     <div className="flex justify-between items-center mt-1">
-                      <p className="text-xs text-brand-dark/50 font-sans">{new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-                      <p className="font-bold text-brand-dark text-sm">₹{order.total?.toFixed(2)}</p>
+                      <p className="text-xs text-brand-dark/50 font-sans">
+                        {order.placed_at ? new Date(order.placed_at).toLocaleDateString('en-IN') : '—'}
+                      </p>
+                      <p className="font-bold text-brand-dark text-sm">₹{Number(order.total_amount).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}

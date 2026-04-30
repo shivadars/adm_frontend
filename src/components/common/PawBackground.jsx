@@ -42,9 +42,9 @@ export const PawBackground = () => {
             position: 'absolute',
             top: paw.top,
             left: paw.left,
-            color: '#2563eb', // brand-blue like color
+            color: '#073b3a', // brand-blue like color
             transform: `rotate(${paw.rotate}deg)`,
-            filter: 'drop-shadow(4px 8px 12px rgba(37, 99, 235, 0.4))' // 3D effect
+            filter: 'drop-shadow(4px 8px 12px rgba(7, 59, 58, 0.4))' // 3D effect
           }}
         >
           <PawPrint size={paw.size} fill="currentColor" />

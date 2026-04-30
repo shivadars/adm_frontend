@@ -9,7 +9,7 @@ export const PetProfileIcon = () => {
   const pets = useSelector(state => selectUserPets(state, user?.id)) || [];
   const fields = useSelector(selectPetFields) || [];
 
-  if (!isAuthenticated || user?.role === 'admin') return null;
+  if (!isAuthenticated || user?.role === 'admin' || user?.role === 'superadmin') return null;
 
   const mainPet = pets[0];
   let percentage = 0;

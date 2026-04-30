@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, clearError } from '../features/auth/authSlice';
+import { loginUser, clearError } from '../features/auth/authSlice';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn, PawPrint } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { PawBackground } from '../components/common/PawBackground';
 
 export const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { error, isAuthenticated, role, user } = useSelector(s => s.auth);
+  const { error, isAuthenticated, role, user, status } = useSelector(s => s.auth);
   const pets = useSelector(state => state.pets.userPets[user?.id] || []);
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const loading = status === 'loading';
 
   React.useEffect(() => {
     dispatch(clearError());
@@ -23,24 +24,19 @@ export const Login = () => {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      if (role === 'customer' && pets.length === 0) {
-        navigate('/onboarding/pet', { replace: true });
-      } else {
-        navigate(params.get('next') || '/', { replace: true });
-      }
+      const isAdmin = role === 'admin' || role === 'superadmin';
+      const defaultPath = isAdmin ? '/admin' : '/';
+      navigate(params.get('next') || defaultPath, { replace: true });
     }
-  }, [isAuthenticated, role, pets.length, user]);
+  }, [isAuthenticated, role, navigate, params]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 400)); // simulate latency
-    dispatch(login(form));
-    setLoading(false);
+    dispatch(loginUser(form));
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen  flex items-center justify-center px-4 py-16 relative overflow-hidden">
       <PawBackground />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -78,7 +74,7 @@ export const Login = () => {
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 placeholder="you@example.com"
-                className="w-full border border-brand-border bg-[#e8f0fe] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+                className="w-full border border-brand-border bg-[#e0f4ee] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
               />
             </div>
             <div>
@@ -90,7 +86,7 @@ export const Login = () => {
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="••••••••"
-                  className="w-full border border-brand-border bg-[#e8f0fe] rounded-xl px-4 py-3 pr-11 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
+                  className="w-full border border-brand-border bg-[#e0f4ee] rounded-xl px-4 py-3 pr-11 text-sm font-sans focus:outline-none focus:border-brand-dark transition-colors"
                 />
                 <button type="button" onClick={() => setShow(s => !s)}
                   className="absolute right-3 top-3 text-brand-dark/50 hover:text-brand-dark/80">

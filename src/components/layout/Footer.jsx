@@ -31,27 +31,18 @@ const links = {
 };
 
 export const Footer = () => (
-  <footer className="bg-brand-dark text-brand-light relative z-10">
+  <footer style={{ backgroundColor: '#073b3a' }} className="text-brand-light relative z-10">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-10 pb-12 border-b border-white/10">
 
         {/* Brand column */}
         <div className="col-span-2 lg:col-span-2">
-          <h3 className="font-serif text-2xl font-bold text-brand-light mb-1 tracking-wide">A'DOREMOM</h3>
-          <p className="text-brand-light/60 text-xs uppercase tracking-[0.15em] mb-5 font-sans">The Mom's Furry Babies Couture</p>
+          <div className="inline-block mb-4 rounded-2xl px-4 py-2" style={{ background: 'rgba(255,255,255,0.92)' }}>
+            <img src="/footerlogo.png" alt="A'DOREMOM Couture" className="h-14 w-auto object-contain" />
+          </div>
           <p className="text-brand-light/70 text-sm leading-relaxed font-sans max-w-xs mb-6">
             Born from a mother's love, A'DOREMOM crafts handmade pet fashion that prioritizes your fur baby's comfort, safety, and style — all at an honest price.
           </p>
-
-          {/* Social */}
-          <div className="flex gap-3 mb-8">
-            {[{ Icon: IconInstagram, label: 'Instagram' }, { Icon: IconWhatsapp, label: 'WhatsApp' }].map(({ Icon, label }) => (
-              <a key={label} href="#" aria-label={label}
-                className="w-9 h-9 rounded-xl border border-white/20 hover:bg-white/15 flex items-center justify-center transition-colors">
-                <Icon />
-              </a>
-            ))}
-          </div>
 
           {/* Contact */}
           <div className="space-y-2 text-sm text-brand-light/70 font-sans">
@@ -74,7 +65,24 @@ export const Footer = () => (
             </ul>
           </div>
         ))}
+
+        {/* Social column — far right */}
+        <div>
+          <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-light/50 mb-5 font-sans">Follow Us</h4>
+          <div className="flex flex-col gap-3">
+            {[{ Icon: IconInstagram, label: 'Instagram' }, { Icon: IconWhatsapp, label: 'WhatsApp' }].map(({ Icon, label }) => (
+              <a key={label} href="#" aria-label={label}
+                className="flex items-center gap-2.5 text-sm font-sans text-brand-light/70 hover:text-brand-light transition-colors group">
+                <span className="w-9 h-9 rounded-xl border border-white/20 group-hover:bg-white/15 flex items-center justify-center transition-colors shrink-0">
+                  <Icon />
+                </span>
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
+
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-8 text-xs text-brand-light/40 font-sans">
         <p>© 2026 A'DOREMOM. All rights reserved.</p>

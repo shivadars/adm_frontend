@@ -10,7 +10,8 @@ export const EditModeBar = () => {
   const { role }   = useSelector(s => s.auth);
   const dispatch   = useDispatch();
 
-  if (role !== 'admin') return null;
+  const isAdmin = role === 'admin' || role === 'superadmin';
+  if (!isAdmin) return null;
 
   const fabBase = {
     position: 'fixed', bottom: '28px', zIndex: 1000,

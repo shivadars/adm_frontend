@@ -106,7 +106,7 @@ export const mockProducts = [
 ];
 
 export const mockCategories = [
-  { id: 'c1', name: 'Male', urlKey: 'male', image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?w=300' },
-  { id: 'c2', name: 'Female', urlKey: 'female', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300' },
-  { id: 'c3', name: 'New Collections', urlKey: 'new-collections', image: 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300' },
+  { id: 'c1', name: 'Male',        urlKey: 'male',        image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?w=300' },
+  { id: 'c2', name: 'Female',      urlKey: 'female',      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300' },
+  { id: 'c3', name: 'Accessories', urlKey: 'accessories', image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300' },
 ];
